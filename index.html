@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="View a Brawl Stars account as a table and export its brawler data to CSV." />
+  <title>Brawl Stars CSV Exporter</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0b1020;
+      --panel: #121a2e;
+      --panel-2: #18223b;
+      --text: #f5f7ff;
+      --muted: #9aa7c2;
+      --accent: #ffd34d;
+      --accent-2: #6bdcff;
+      --danger: #ff7b8c;
+      --border: #2a3656;
+      --shadow: 0 18px 60px rgba(0,0,0,.28);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 20% 0%, rgba(107,220,255,.11), transparent 35%),
+        radial-gradient(circle at 90% 15%, rgba(255,211,77,.10), transparent 28%),
+        var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    main { width: min(1180px, calc(100% - 28px)); margin: 0 auto; padding: 54px 0 72px; }
+    .hero { margin-bottom: 24px; }
+    .eyebrow { color: var(--accent); font-size: 12px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+    h1 { margin: 10px 0 8px; font-size: clamp(34px, 6vw, 64px); line-height: .98; letter-spacing: -.05em; }
+    .subtitle { max-width: 720px; margin: 0; color: var(--muted); font-size: 16px; line-height: 1.6; }
+
+    .card { background: color-mix(in srgb, var(--panel) 94%, transparent); border: 1px solid var(--border); border-radius: 20px; box-shadow: var(--shadow); }
+    .search-card { padding: 18px; display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: end; }
+    label { display: block; font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 7px; }
+    input {
+      width: 100%; height: 48px; border-radius: 12px; border: 1px solid var(--border);
+      background: #0d1427; color: var(--text); padding: 0 14px; font: inherit; outline: none;
+    }
+    input:focus { border-color: var(--accent-2); box-shadow: 0 0 0 3px rgba(107,220,255,.12); }
+    button {
+      height: 48px; border: 0; border-radius: 12px; padding: 0 17px; font: inherit; font-weight: 800;
+      cursor: pointer; transition: transform .15s ease, opacity .15s ease, background .15s ease;
+    }
+    button:hover:not(:disabled) { transform: translateY(-1px); }
+    button:disabled { opacity: .55; cursor: wait; }
+    .primary { background: var(--accent); color: #1b1600; }
+    .secondary { background: var(--panel-2); color: var(--text); border: 1px solid var(--border); }
+
+    #status { min-height: 22px; margin: 12px 4px 0; font-size: 14px; color: var(--muted); }
+    #status.error { color: var(--danger); }
+
+    .results { display: none; margin-top: 24px; }
+    .summary { padding: 20px; display: grid; grid-template-columns: minmax(220px, 1.5fr) repeat(4, minmax(110px, 1fr)); gap: 14px; }
+    .player-name { font-size: 28px; font-weight: 900; letter-spacing: -.03em; }
+    .player-tag { color: var(--muted); margin-top: 4px; }
+    .metric { background: var(--panel-2); border: 1px solid var(--border); border-radius: 14px; padding: 13px; }
+    .metric .k { color: var(--muted); font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; }
+    .metric .v { margin-top: 4px; font-size: 22px; font-weight: 900; }
+
+    .toolbar { margin: 16px 0 10px; display: flex; gap: 10px; justify-content: space-between; flex-wrap: wrap; }
+    .toolbar .left, .toolbar .right { display: flex; gap: 10px; flex-wrap: wrap; }
+    .toolbar input { width: 240px; height: 42px; }
+    .toolbar button { height: 42px; }
+
+    .table-card { overflow: hidden; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { padding: 13px 12px; border-bottom: 1px solid var(--border); text-align: left; white-space: nowrap; }
+    th { position: sticky; top: 0; background: #11192d; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .05em; cursor: pointer; user-select: none; }
+    th:hover { color: var(--text); }
+    tbody tr:hover { background: rgba(255,255,255,.025); }
+    td.name { font-weight: 800; }
+    td.num { font-variant-numeric: tabular-nums; }
+    .pill { display: inline-block; margin: 2px 4px 2px 0; padding: 3px 7px; border: 1px solid var(--border); border-radius: 999px; background: #0e1629; font-size: 12px; color: #dbe4f7; }
+    .yes { color: #8ef0ad; font-weight: 800; }
+    .no { color: var(--muted); }
+    footer { margin-top: 20px; color: var(--muted); font-size: 12px; line-height: 1.5; }
+    code { color: #dce7ff; }
+
+    @media (max-width: 760px) {
+      main { padding-top: 34px; }
+      .search-card { grid-template-columns: 1fr; }
+      .search-card button { width: 100%; }
+      .summary { grid-template-columns: 1fr 1fr; }
+      .summary .identity { grid-column: 1 / -1; }
+      .toolbar .left, .toolbar .right { width: 100%; }
+      .toolbar input { width: 100%; }
+      .toolbar button { flex: 1; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="hero">
+      <div class="eyebrow">No login · No framework · CSV export</div>
+      <h1>Brawl Stars<br>CSV Exporter</h1>
+      <p class="subtitle">Enter a player tag to load the account, inspect each brawler in a table, filter or sort it, and download the data as a CSV file.</p>
+    </section>
+
+    <section class="card search-card">
+      <div>
+        <label for="tag">PLAYER TAG</label>
+        <input id="tag" autocomplete="off" spellcheck="false" placeholder="#2P0Y8Q9" aria-label="Brawl Stars player tag" />
+      </div>
+      <button id="load" class="primary">Load account</button>
+    </section>
+    <div id="status" role="status" aria-live="polite"></div>
+
+    <section id="results" class="results">
+      <div class="card summary">
+        <div class="identity">
+          <div id="playerName" class="player-name">—</div>
+          <div id="playerTag" class="player-tag">—</div>
+        </div>
+        <div class="metric"><div class="k">Trophies</div><div id="trophies" class="v">—</div></div>
+        <div class="metric"><div class="k">Highest</div><div id="highest" class="v">—</div></div>
+        <div class="metric"><div class="k">Brawlers</div><div id="brawlerCount" class="v">—</div></div>
+        <div class="metric"><div class="k">3v3 wins</div><div id="wins3v3" class="v">—</div></div>
+      </div>
+
+      <div class="toolbar">
+        <div class="left"><input id="filter" placeholder="Filter brawlers…" aria-label="Filter brawlers" /></div>
+        <div class="right">
+          <button id="json" class="secondary">Download JSON</button>
+          <button id="csv" class="primary">Download CSV</button>
+        </div>
+      </div>
+
+      <div class="card table-card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr id="head"></tr></thead>
+            <tbody id="body"></tbody>
+          </table>
+        </div>
+      </div>
+      <footer>Tip: click a column header to sort. The CSV contains both counts and readable item names for gadgets, star powers, gears, streak/prestige fields, and buffie flags when the API provides them.</footer>
+    </section>
+  </main>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const nf = new Intl.NumberFormat();
+  let rawPlayer = null;
+  let rows = [];
+  let sortKey = "trophies";
+  let sortDir = -1;
+
+  const columns = [
+    ["name", "Brawler"], ["power", "Power"], ["rank", "Rank"], ["trophies", "Trophies"],
+    ["highestTrophies", "Highest"], ["currentWinStreak", "Win streak"], ["maxWinStreak", "Max streak"],
+    ["prestigeLevel", "Prestige"], ["gadgetsCount", "Gadgets"], ["starPowersCount", "Star powers"],
+    ["gearsCount", "Gears"], ["hyperChargeBuffie", "HC buffie"], ["gadgetBuffie", "Gadget buffie"],
+    ["starPowerBuffie", "SP buffie"]
+  ];
+
+  function itemNames(value) {
+    if (!Array.isArray(value)) return "";
+    return value.map(x => x?.name || x?.id || "").filter(Boolean).join(" | ");
+  }
+
+  function gearNames(value) {
+    if (!Array.isArray(value)) return "";
+    return value.map(x => {
+      const name = x?.name || x?.id || "";
+      return x?.level ? `${name} (Lv ${x.level})` : name;
+    }).filter(Boolean).join(" | ");
+  }
+
+  function flattenBrawler(b) {
+    return {
+      id: b.id ?? "",
+      name: b.name ?? "",
+      power: b.power ?? "",
+      rank: b.rank ?? "",
+      trophies: b.trophies ?? "",
+      highestTrophies: b.highestTrophies ?? "",
+      currentWinStreak: b.currentWinStreak ?? "",
+      maxWinStreak: b.maxWinStreak ?? "",
+      prestigeLevel: b.prestigeLevel ?? "",
+      skin: b.skin?.name || "",
+      gadgetsCount: Array.isArray(b.gadgets) ? b.gadgets.length : 0,
+      gadgets: itemNames(b.gadgets),
+      starPowersCount: Array.isArray(b.starPowers) ? b.starPowers.length : 0,
+      starPowers: itemNames(b.starPowers),
+      gearsCount: Array.isArray(b.gears) ? b.gears.length : 0,
+      gears: gearNames(b.gears),
+      hyperChargesCount: Array.isArray(b.hyperCharges) ? b.hyperCharges.length : (Array.isArray(b.hypercharges) ? b.hypercharges.length : 0),
+      hyperCharges: itemNames(b.hyperCharges || b.hypercharges),
+      hyperChargeBuffie: b.buffies?.hyperCharge ?? "",
+      gadgetBuffie: b.buffies?.gadget ?? "",
+      starPowerBuffie: b.buffies?.starPower ?? ""
+    };
+  }
+
+  function setStatus(message, isError = false) {
+    $("status").textContent = message;
+    $("status").className = isError ? "error" : "";
+  }
+
+  function escapeHtml(value) {
+    return String(value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  function formatCell(key, value) {
+    if (["hyperChargeBuffie", "gadgetBuffie", "starPowerBuffie"].includes(key)) {
+      if (value === true) return '<span class="yes">Yes</span>';
+      if (value === false) return '<span class="no">No</span>';
+      return '<span class="no">—</span>';
+    }
+    if (["trophies", "highestTrophies"].includes(key) && value !== "") return nf.format(value);
+    return value === "" || value == null ? "—" : escapeHtml(value);
+  }
+
+  function renderTable() {
+    const q = $("filter").value.trim().toLowerCase();
+    const filtered = rows.filter(r => !q || Object.values(r).some(v => String(v).toLowerCase().includes(q)));
+
+    const sorted = [...filtered].sort((a, b) => {
+      const av = a[sortKey], bv = b[sortKey];
+      if (typeof av === "number" && typeof bv === "number") return (av - bv) * sortDir;
+      return String(av ?? "").localeCompare(String(bv ?? ""), undefined, { numeric: true }) * sortDir;
+    });
+
+    $("head").innerHTML = columns.map(([key, label]) =>
+      `<th data-key="${key}">${label}${sortKey === key ? (sortDir === 1 ? " ▲" : " ▼") : ""}</th>`
+    ).join("");
+
+    $("body").innerHTML = sorted.map(r => `<tr>${columns.map(([key]) =>
+      `<td class="${key === "name" ? "name" : "num"}">${formatCell(key, r[key])}</td>`
+    ).join("")}</tr>`).join("");
+
+    $("head").querySelectorAll("th").forEach(th => th.onclick = () => {
+      const key = th.dataset.key;
+      if (sortKey === key) sortDir *= -1;
+      else { sortKey = key; sortDir = key === "name" ? 1 : -1; }
+      renderTable();
+    });
+  }
+
+  function renderPlayer(player) {
+    rawPlayer = player;
+    rows = (player.brawlers || []).map(flattenBrawler);
+    $("playerName").textContent = player.name || "Unknown player";
+    $("playerTag").textContent = player.tag || "";
+    $("trophies").textContent = nf.format(player.trophies ?? 0);
+    $("highest").textContent = nf.format(player.highestTrophies ?? 0);
+    $("brawlerCount").textContent = nf.format(rows.length);
+    $("wins3v3").textContent = nf.format(player["3vs3Victories"] ?? 0);
+    $("results").style.display = "block";
+    renderTable();
+  }
+
+  function normalizeTag(input) {
+    const compact = input.trim().toUpperCase().replace(/\s+/g, "");
+    if (!compact) return "";
+    return compact.startsWith("#") ? compact : `#${compact}`;
+  }
+
+  async function loadPlayer() {
+    const tag = normalizeTag($("tag").value);
+    if (!tag) return setStatus("Enter a player tag first.", true);
+
+    $("load").disabled = true;
+    setStatus("Loading account…");
+    try {
+      const response = await fetch(`/api/player?tag=${encodeURIComponent(tag)}`, { headers: { "Accept": "application/json" } });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.message || data.reason || `Request failed (${response.status})`);
+      renderPlayer(data);
+      setStatus(`Loaded ${data.name || tag}.`);
+    } catch (err) {
+      $("results").style.display = "none";
+      setStatus(err.message || "Could not load that account.", true);
+    } finally {
+      $("load").disabled = false;
+    }
+  }
+
+  function csvEscape(value) {
+    const s = value == null ? "" : String(value);
+    return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  }
+
+  function download(filename, content, type) {
+    const blob = new Blob([content], { type });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 500);
+  }
+
+  function downloadCsv() {
+    if (!rawPlayer) return;
+    const fields = [
+      "id", "name", "power", "rank", "trophies", "highestTrophies", "currentWinStreak", "maxWinStreak",
+      "prestigeLevel", "skin", "gadgetsCount", "gadgets", "starPowersCount", "starPowers", "gearsCount", "gears",
+      "hyperChargesCount", "hyperCharges", "hyperChargeBuffie", "gadgetBuffie", "starPowerBuffie"
+    ];
+    const csv = [fields.join(","), ...rows.map(r => fields.map(f => csvEscape(r[f])).join(","))].join("\n");
+    const cleanTag = (rawPlayer.tag || "player").replace("#", "");
+    download(`brawl-${cleanTag}.csv`, "\uFEFF" + csv, "text/csv;charset=utf-8");
+  }
+
+  function downloadJson() {
+    if (!rawPlayer) return;
+    const cleanTag = (rawPlayer.tag || "player").replace("#", "");
+    download(`brawl-${cleanTag}.json`, JSON.stringify(rawPlayer, null, 2), "application/json;charset=utf-8");
+  }
+
+  $("load").addEventListener("click", loadPlayer);
+  $("tag").addEventListener("keydown", e => { if (e.key === "Enter") loadPlayer(); });
+  $("filter").addEventListener("input", renderTable);
+  $("csv").addEventListener("click", downloadCsv);
+  $("json").addEventListener("click", downloadJson);
+</script>
+</body>
+</html>
