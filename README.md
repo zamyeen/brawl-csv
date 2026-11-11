@@ -76,3 +76,11 @@ Progress uses only brawlers present in the player's API response. The two-gadget
 - `features.js`: Browser storage, saved-profile shortcuts, milestones, and upgrade-cost calculations.
 - `features.css`: Styling for saved accounts and milestones.
 
+
+## Additional collection milestones
+
+- **Buffies remaining:** Counts explicit `false` values for Hypercharge, Gadget, and Star Power Buffies in the account API response. A missing/null field is treated as unknown and excluded from both the collected and missing totals. If the API reports no Buffie ownership, the card shows an unavailable count rather than zero.
+- **At least one gadget:** Counts and lists owned brawlers with an empty/missing gadget array.
+- **At least one star power:** Counts and lists owned brawlers with an empty/missing star power array.
+
+These milestones refresh with each player lookup, like existing upgrade milestones. Buffie availability and eligibility may not be fully represented by the API; the Buffie estimate is limited to explicitly reported slots.
