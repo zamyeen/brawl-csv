@@ -156,6 +156,7 @@
             <select id="powerGoal"><option value="9">Power 9</option><option value="10">Power 10</option><option value="11" selected>Power 11</option></select>
           </div>
         </div>
+
         <div class="milestone-grid">
           <div class="milestone-tile">
             <h3>Account trophies</h3>
@@ -167,30 +168,61 @@
           <div class="milestone-tile">
             <h3>Power upgrades</h3>
             <div id="powerRemaining" class="milestone-number">—</div>
-            <span class="feature-muted">owned brawlers below target</span>
+            <span id="powerRemainingLabel" class="feature-muted">owned brawlers below Power 11</span>
             <div class="progress-track"><div id="powerBar" class="progress-fill" role="progressbar" aria-label="Power goal progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div>
             <div id="powerProgressText" class="feature-muted"></div>
+            <div class="cost-summary cost-summary-inline">
+              <div><span class="feature-muted">Power points needed</span><div><strong id="pointsRemaining">—</strong></div></div>
+              <div><span class="feature-muted">Coins needed</span><div><strong id="coinsRemaining">—</strong></div></div>
+            </div>
+            <p class="feature-muted cost-note">For power-level upgrades only; excludes ability purchases.</p>
           </div>
-          <div class="milestone-tile">
-            <h3>Both gadgets</h3>
-            <div id="gadgetRemaining" class="milestone-number">—</div>
-            <span class="feature-muted">owned brawlers missing at least one</span>
-            <div class="progress-track"><div id="gadgetBar" class="progress-fill" role="progressbar" aria-label="Gadget completion" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div>
+        </div>
+        <div class="collection-grid">
+          <section class="collection-panel" aria-labelledby="gadgetHeading">
+            <h3 id="gadgetHeading">Gadgets</h3>
+            <p class="feature-muted collection-subtitle">Owned brawlers grouped by gadgets collected</p>
+            <div class="collection-counts">
+              <div class="collection-count"><strong id="gadgetCount2">—</strong><span>Both</span></div>
+              <div class="collection-count"><strong id="gadgetCount1">—</strong><span>1 gadget</span></div>
+              <div class="collection-count"><strong id="gadgetCount0">—</strong><span>0 gadgets</span></div>
+            </div>
+            <div class="progress-track"><div id="gadgetBar" class="progress-fill" role="progressbar" aria-label="Brawlers with both gadgets" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div>
             <div id="gadgetProgressText" class="feature-muted"></div>
-          </div>
-          <div class="milestone-tile">
-            <h3>Both star powers</h3>
-            <div id="starRemaining" class="milestone-number">—</div>
-            <span class="feature-muted">owned brawlers missing at least one</span>
-            <div class="progress-track"><div id="starBar" class="progress-fill" role="progressbar" aria-label="Star power completion" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div>
+            <div class="collection-cost"><span>Coins for missing gadgets</span><strong id="gadgetCoinCost">—</strong></div>
+            <p id="gadgetMissingNames" class="feature-muted collection-names"></p>
+          </section>
+          <section class="collection-panel" aria-labelledby="starHeading">
+            <h3 id="starHeading">Star powers</h3>
+            <p class="feature-muted collection-subtitle">Owned brawlers grouped by star powers collected</p>
+            <div class="collection-counts">
+              <div class="collection-count"><strong id="starCount2">—</strong><span>Both</span></div>
+              <div class="collection-count"><strong id="starCount1">—</strong><span>1 star power</span></div>
+              <div class="collection-count"><strong id="starCount0">—</strong><span>0 star powers</span></div>
+            </div>
+            <div class="progress-track"><div id="starBar" class="progress-fill" role="progressbar" aria-label="Brawlers with both star powers" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div>
             <div id="starProgressText" class="feature-muted"></div>
-          </div>
+            <div class="collection-cost"><span>Coins for missing star powers</span><strong id="starCoinCost">—</strong></div>
+            <p id="starMissingNames" class="feature-muted collection-names"></p>
+          </section>
+          <section class="collection-panel" aria-labelledby="buffieHeading">
+            <h3 id="buffieHeading">Buffies</h3>
+            <p class="feature-muted collection-subtitle">Three ability Buffies per released, eligible brawler</p>
+            <div class="collection-counts collection-counts-four">
+              <div class="collection-count"><strong id="buffieCount3">—</strong><span>3 Buffies</span></div>
+              <div class="collection-count"><strong id="buffieCount2">—</strong><span>2 Buffies</span></div>
+              <div class="collection-count"><strong id="buffieCount1">—</strong><span>1 Buffie</span></div>
+              <div class="collection-count"><strong id="buffieCount0">—</strong><span>0 Buffies</span></div>
+            </div>
+            <div class="progress-track"><div id="buffieBar" class="progress-fill" role="progressbar" aria-label="Known Buffie collection progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div>
+            <div id="buffieProgressText" class="feature-muted"></div>
+            <div class="collection-costs">
+              <div class="collection-cost"><span id="buffieCoinLabel">Coins for missing Buffies</span><strong id="buffieCoinCost">—</strong></div>
+              <div class="collection-cost"><span id="buffiePointLabel">Power points for missing Buffies</span><strong id="buffiePointCost">—</strong></div>
+            </div>
+            <p id="buffieBreakdown" class="feature-muted collection-names"></p>
+          </section>
         </div>
-        <div class="cost-summary">
-          <div><span class="feature-muted">Power points needed</span><div><strong id="pointsRemaining">—</strong></div></div>
-          <div><span class="feature-muted">Coins needed</span><div><strong id="coinsRemaining">—</strong></div></div>
-        </div>
-        <p class="feature-muted">Upgrade costs cover power-level upgrades for owned brawlers only, not unlocking brawlers, buying gadgets, star powers, gears, or hypercharges. Costs may change with game updates.</p>
       </section>
 
       <div class="toolbar">

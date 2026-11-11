@@ -69,10 +69,23 @@ No React, Next.js, database, bundler, or package dependencies are required.
 
 Saved tags, player display names, and individual milestone settings use browser `localStorage`. Data is not synchronized between devices or browsers, and deleting site storage deletes saved profiles. No account login is required. Players' live statistics are refreshed from the Brawl Stars API when a profile is loaded, rather than retained as a snapshot.
 
-Progress uses only brawlers present in the player's API response. The two-gadget and two-star-power milestones count owned brawlers with two items in those categories. Power-point and coin estimates cover base power-level upgrades only and exclude buying gadgets, star powers, gears, hypercharges, and unlocking unowned brawlers. Update the cost table in `features.js` if the game's upgrade economy changes.
+Progress uses only owned brawlers present in the player's API response. The **Power upgrades** tile shows how many owned brawlers are below the selected Power 9, 10, or 11 target and shows power points and coins needed immediately below its progress bar.
 
-## New files
+The **Gadgets** and **Star powers** sections each show how many owned brawlers have 2, 1, or 0 of that ability, plus the completion progress bar, incomplete brawler names, and total coin cost to fill missing slots. Estimated costs: **1,000 coins per Gadget** and **2,000 coins per Star Power**.
 
-- `features.js`: Browser storage, saved-profile shortcuts, milestones, and upgrade-cost calculations.
-- `features.css`: Styling for saved accounts and milestones.
+The **Buffies** section shows how many owned eligible brawlers have 3, 2, 1, or 0 *ability* Buffies (Hypercharge, Gadget, Star Power). Only brawlers with all three reported API ownership flags enter those exact buckets. Unknown/null fields are **not** treated as missing: brawlers with incomplete ownership information are reported separately. The progress bar includes only known Buffie slots. Missing slots with an explicit `false` cost **1,000 coins and 2,000 power points each**; when any slots are unknown, displayed costs are minimums. Cosmetic Buffies are not included.
 
+Buffie eligibility uses the 33-brawler released roster stored in `features.js` (November 2026 snapshot). Update it when the game releases more Buffies. Costs assume direct standard shop purchases / claw-machine pulls, with no free rewards or discounts. They exclude gears, Hypercharges, unlocking unowned brawlers, and other progression systems.
+
+## Files
+
+- `index.html`: static frontend and dashboard markup
+- `features.js`: browser storage, milestones, breakdowns and upgrade-cost calculations
+- `features.css`: styling for saved profiles and milestones
+- `api/player.js`: serverless API proxy
+
+## Buffie references
+
+- https://brawlmetrics.gg/buffies
+- https://supercell.com/en/games/brawlstars/blog/game-updates/release-notes-november-2026/
+- https://supercell.com/en/games/brawlstars/blog/news/new-power-brawl-pass-changes-and-a-new-starr-drop-2/

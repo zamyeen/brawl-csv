@@ -23,3 +23,24 @@
 .cost-summary { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 16px; }
 .cost-summary strong { font-size: 21px; color: var(--accent); }
 @media (max-width: 760px) { .milestone-grid { grid-template-columns: 1fr; } .milestone-controls > div, .milestone-controls input, .milestone-controls select { width: 100%; } }
+
+/* Collection breakdowns: keep the power-level cost inside its own milestone. */
+.cost-summary-inline { margin-top: 15px; border-top: 1px solid var(--border); padding-top: 13px; }
+.cost-note { margin: 10px 0 0; }
+.collection-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 16px; }
+.collection-panel { min-width: 0; padding: 16px; border-radius: 14px; border: 1px solid var(--border); background: var(--panel-2); }
+.collection-panel h3 { margin: 0 0 5px; font-size: 17px; }
+.collection-subtitle { min-height: 38px; margin: 0 0 14px; }
+.collection-counts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; }
+.collection-counts-four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.collection-count { min-width: 0; padding: 10px 4px; text-align: center; border-radius: 10px; background: #0d1427; border: 1px solid var(--border); }
+.collection-count strong, .collection-count span { display: block; }
+.collection-count strong { color: var(--text); font-size: 23px; font-variant-numeric: tabular-nums; }
+.collection-count span { margin-top: 3px; font-size: 11px; color: var(--muted); }
+.collection-panel .progress-track { margin-top: 15px; }
+.collection-costs { display: grid; gap: 10px; }
+.collection-cost { display: flex; gap: 10px; justify-content: space-between; align-items: baseline; margin-top: 13px; padding-top: 12px; border-top: 1px solid var(--border); font-size: 12px; color: var(--muted); }
+.collection-cost strong { font-size: 20px; color: var(--accent); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.collection-names { overflow-wrap: anywhere; margin: 12px 0 0; }
+@media (max-width: 1050px) { .collection-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 760px) { .collection-grid { grid-template-columns: 1fr; } .collection-subtitle { min-height: 0; } }
