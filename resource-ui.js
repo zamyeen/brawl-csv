@@ -137,7 +137,7 @@
     messages.push("Completion percentages use power levels, gadgets, star powers and eligible Buffies. Gears and Hypercharges contribute known resource value but have no reliable completion denominator. Unlock costs, unspent balances and free-reward history are excluded.");
     $("resourceNotes").textContent = messages.join(" ");
 
-    if (record) saveSnapshot(result);
+    if (record && (mode === "owned" || result.mode === "all")) saveSnapshot(result);
     displayHistory(result);
   }
   async function loadRoster() {
@@ -167,8 +167,7 @@
     player = event.detail;
     render(true);
     loadRoster().then(() => {
-      // Capturing the fully resolved scope avoids mixing fallback snapshots with
-      // historical full-roster values.
+      // After catalogue load, record the complete-roster snapshot only if selected.
       if (player && $("resourceScope").value === "all" && roster) render(true);
     });
   });
