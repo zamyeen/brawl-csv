@@ -50,7 +50,19 @@
       ? "Since first snapshot: "+signed(series.at(-1).coins-series[0].coins)+" coins, "+
         signed(series.at(-1).points-series[0].points)+" power points."
       : "Save another checkpoint later to track value growth.";
-    chart.render($("resourceHistoryChart"),series,$("resourceChartMetric").value);
+    const category=$("resourceChartCategory").value;
+    const resource=$("resourceChartMetric").value;
+    window.BrawlTrendChart.draw($("resourceHistoryChart"),[
+      {name:player.name||player.tag,history:series}
+    ],{category,resource});
+    const requiresCompletion=resource==="completion";
+    $("resourceChartHint").textContent=requiresCompletion
+      ? category==="gears"||category==="hypercharges"
+        ? "Completion unavailable: the API does not reliably provide the full number of obtainable gears or Hypercharges."
+        : category==="total"
+          ? "Total completion is the equal-weight average of Power, Gadgets, Star Powers and Buffies (where defined). Buffie uncertainty is shown as a confirmed minimum."
+          : "Completion uses this category's released upgrades. Unknown Buffies are excluded from the confirmed minimum."
+      : "Coin and power-point values use their own scales when both are shown. Older snapshots without category detail cannot display those category histories.";
   }
   function signed(value) {return (value>0?"+":"")+fmt(value);}
 
@@ -158,8 +170,10 @@
       $("resourceHistoryStatus").textContent="Save failed: "+error.message;
     }
   });
-  $("resourceChartMetric").addEventListener("change",()=>{
-    if(player && lastResult) displayHistory(lastResult);
+  ["resourceChartCategory","resourceChartMetric"].forEach(id=>{
+    $(id).addEventListener("change",()=>{
+      if(player && lastResult) displayHistory(lastResult);
+    });
   });
   $("resourceExportHistory").addEventListener("click",()=>{
     const blob=new Blob([history.exportJSON(storage)],{type:"application/json"});
