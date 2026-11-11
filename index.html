@@ -98,6 +98,7 @@
     }
   </style>
   <link rel="stylesheet" href="/features.css" />
+  <link rel="stylesheet" href="/resource.css" />
 </head>
 <body>
   <main>
@@ -137,6 +138,180 @@
         <div class="metric"><div class="k">Brawlers</div><div id="brawlerCount" class="v">—</div></div>
         <div class="metric"><div class="k">3v3 wins</div><div id="wins3v3" class="v">—</div></div>
       </div>
+
+
+      <section class="card resource-card" aria-labelledby="resourceTitle">
+        <div class="resource-heading">
+          <div>
+            <h2 id="resourceTitle">Account Resource Value</h2>
+            <p class="feature-muted">Standard upgrade value of collected progression, not coins or power points currently in your inventory.</p>
+          </div>
+          <div class="resource-scope">
+            <label for="resourceScope">COMPLETION TARGET</label>
+            <select id="resourceScope">
+              <option value="owned">Owned brawlers</option>
+              <option value="all">Entire roster</option>
+            </select>
+          </div>
+        </div>
+        <div class="resource-totals">
+          <div class="resource-summary">
+            <h3>COIN VALUE ACQUIRED</h3>
+            <div id="resourceCoinsAcquired" class="value">—</div>
+            <p><strong id="resourceCoinsRemaining">—</strong> coins still needed for known core upgrades</p>
+          </div>
+          <div class="resource-summary">
+            <h3>POWER POINT VALUE ACQUIRED</h3>
+            <div id="resourcePointsAcquired" class="value">—</div>
+            <p><strong id="resourcePointsRemaining">—</strong> power points still needed for known core upgrades</p>
+          </div>
+        </div>
+        <div class="resource-progress">
+          <div class="resource-progress-card">
+            <div class="flexline"><h3>Coin completion</h3><strong id="resourceCoinsPercent">—</strong></div>
+            <div class="progress-track"><div class="progress-fill" id="resourceCoinsBar" role="progressbar" aria-label="Coin completion for known core upgrade targets" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div>
+            <div id="resourceCoinsProgressDetail" class="feature-muted"></div>
+          </div>
+          <div class="resource-progress-card">
+            <div class="flexline"><h3>Power point completion</h3><strong id="resourcePointsPercent">—</strong></div>
+            <div class="progress-track"><div class="progress-fill" id="resourcePointsBar" role="progressbar" aria-label="Power point completion for known core upgrade targets" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div>
+            <div id="resourcePointsProgressDetail" class="feature-muted"></div>
+          </div>
+        </div>
+        <h3 class="resource-section-heading">Completion by category</h3>
+        <p class="feature-muted">Power upgrades, gadgets, star powers, Buffies and the equal-weight core average. Gear and Hypercharge completion remain unavailable without a reliable maximum.</p>
+        <div id="resourceCompletionGrid" class="category-completion-grid" aria-label="Completion percentages by upgrade category"></div>
+        <h3 class="resource-section-heading">Resource breakdown</h3>
+        <div class="resource-table-wrap">
+          <table class="resource-table" aria-label="Resource-equivalent breakdown">
+            <thead><tr><th>Category</th><th>Coins acquired</th><th>Power points acquired</th><th>Known coins remaining</th><th>Known points remaining</th></tr></thead>
+            <tbody id="resourceRows"></tbody>
+          </table>
+        </div>
+        <p id="resourceNotes" class="feature-muted resource-caveats" role="status"></p>
+        <div class="resource-history">
+          <div class="feature-heading">
+            <div>
+              <h3>Progress history</h3>
+              <p class="feature-muted">Saved locally on this browser. Automatically records changed account values; add named checkpoints whenever you like.</p>
+            </div>
+            <div class="resource-history-actions">
+              <button id="resourceSaveSnapshot" class="primary" type="button">Save snapshot</button>
+              <button id="resourceExportHistory" class="secondary" type="button">Export history</button>
+              <button id="resourceImportHistory" class="secondary" type="button">Import history</button>
+              <input id="resourceImportFile" type="file" accept=".json,application/json" hidden aria-label="Import resource history JSON" />
+            </div>
+          </div>
+          <label for="resourceSnapshotNote">OPTIONAL SNAPSHOT NOTE</label>
+          <input id="resourceSnapshotNote" type="text" maxlength="100" placeholder="e.g. After upgrading Shelly" />
+          <details class="resource-import-help">
+            <summary>What can I import? Instructions for older history</summary>
+            <div class="resource-import-instructions feature-muted">
+              <p><strong>Moving from another browser?</strong> In the old browser, open this website, choose <strong>Export history</strong>, then select that downloaded <code>.json</code> file here with <strong>Import history</strong>. Existing records are merged without duplicate snapshots.</p>
+              <p><strong>Older saved progress:</strong> If you already used the Resource Value dashboard in this same browser, earlier snapshots should appear automatically. If you only have the old browser-storage value under <code>brawl-csv:resource-history:v1</code>, save that JSON text to a <code>.json</code> file and import it directly. The importer accepts that older format too.</p>
+              <p><strong>Required for raw older data:</strong> A JSON object with entries named <code>#PLAYERTAG:owned</code> or <code>#PLAYERTAG:all</code>. Each entry is an array of snapshots with an ISO-8601 timestamp and nonnegative whole-number <code>coins</code> and <code>points</code>. For example:</p>
+              <pre><code>{
+  "#2P0Y8Q9:owned": [
+    {
+      "timestamp": "2026-11-01T12:00:00.000Z",
+      "coins": 50000,
+      "points": 20000
+    }
+  ]
+}</code></pre>
+              <p>The regular <strong>Download JSON</strong> player-account export is not a history backup and cannot be imported here. You cannot reconstruct past progress if no earlier snapshots were saved. Maximum import file size: <strong>2 MB</strong>. History stays on this browser unless you export it.</p>
+            </div>
+          </details>
+          <div id="resourceHistoryStatus" class="feature-muted" role="status" aria-live="polite"></div>
+          <div class="resource-chart-heading">
+            <div id="resourceGrowth" class="feature-muted"></div>
+            <div class="resource-scope">
+              <div class="resource-graph-filters">
+                <div><label for="resourceChartCategory">CATEGORY</label>
+                  <select id="resourceChartCategory"><option value="total">Total resource value</option>
+                <option value="power">Power levels</option>
+                <option value="gadgets">Gadgets</option>
+                <option value="starPowers">Star powers</option>
+                <option value="buffies">Buffies</option>
+                <option value="gears">Gears</option>
+                <option value="hypercharges">Hypercharges</option></select></div>
+                <div><label for="resourceChartMetric">RESOURCE / COMPLETION</label>
+                  <select id="resourceChartMetric">
+                    <option value="both" selected>Coins + power points</option>
+                    <option value="coins">Coins</option>
+                    <option value="points">Power points</option>
+                    <option value="completion">Completion percentage</option>
+                  </select></div>
+              </div>
+            </div>
+          </div>
+          <p id="resourceChartHint" class="feature-muted">Gold = coins (left scale); blue = power points (right scale). Hover a point for its exact value and date.</p>
+          <svg id="resourceHistoryChart" class="resource-history-chart" viewBox="0 0 760 270" aria-label="Resource value over time"></svg>
+          <ul id="resourceHistoryList" class="resource-history-list"></ul>
+        </div>
+      </section>
+
+
+    <section class="card resource-card" aria-labelledby="compareTitle">
+      <div class="resource-heading">
+        <div>
+          <h2 id="compareTitle">Compare saved profiles</h2>
+          <p class="feature-muted">Load two saved player tags and compare their current resource-equivalent values.</p>
+        </div>
+      </div>
+      <div class="compare-controls">
+        <div><label for="compareProfileA">PROFILE A</label><select id="compareProfileA"><option value="">Choose saved profile</option></select></div>
+        <div><label for="compareProfileB">PROFILE B</label><select id="compareProfileB"><option value="">Choose saved profile</option></select></div>
+        <button id="compareProfiles" class="primary" type="button" disabled>Compare profiles</button>
+      </div>
+      <div class="resource-scope"><label for="compareScope">COMPLETION TARGET</label><select id="compareScope"><option value="owned">Owned brawlers</option><option value="all">Entire roster</option></select></div>
+      <p id="compareStatus" class="feature-muted" role="status" aria-live="polite">Save at least two player profiles to compare them.</p>
+      <div id="compareResults" hidden>
+        <div id="compareNames" class="compare-names"></div>
+        <div class="compare-chart-head">
+          <h3>Visual comparison</h3>
+          <div class="resource-scope">
+            <label for="compareChartMetric">SHOW</label>
+            <select id="compareChartMetric">
+              <option value="coins" selected>Coin value</option>
+              <option value="points">Power point value</option>
+              <option value="completion">Completion %</option>
+            </select>
+          </div>
+        </div>
+        <svg id="compareBarChart" class="resource-history-chart compare-bar-chart" viewBox="0 0 900 450" aria-label="Visual comparison of two saved profiles"></svg>
+        <p id="compareChartDescription" class="feature-muted"></p>
+        <div class="compare-chart-head">
+          <h3>Compare progression over time</h3>
+          <div class="resource-graph-filters">
+            <div><label for="compareTrendCategory">CATEGORY</label>
+              <select id="compareTrendCategory"><option value="total">Total resource value</option>
+                <option value="power">Power levels</option>
+                <option value="gadgets">Gadgets</option>
+                <option value="starPowers">Star powers</option>
+                <option value="buffies">Buffies</option>
+                <option value="gears">Gears</option>
+                <option value="hypercharges">Hypercharges</option></select></div>
+            <div><label for="compareTrendResource">RESOURCE / COMPLETION</label>
+              <select id="compareTrendResource">
+                <option value="both" selected>Coins + power points</option>
+                <option value="coins">Coins</option>
+                <option value="points">Power points</option>
+                <option value="completion">Completion percentage</option>
+              </select></div>
+          </div>
+        </div>
+        <svg id="compareTrendChart" class="resource-history-chart" viewBox="0 0 780 295" aria-label="Both saved profiles' resource progression over time"></svg>
+        <p id="compareTrendHint" class="feature-muted">Each account uses its own line color. Missing historical category data is not assumed to be zero; load and save new snapshots to track categories.</p>
+        <div class="resource-table-wrap">
+          <table class="resource-table" aria-label="Comparison of two saved profiles">
+            <thead><tr><th>Metric</th><th id="compareHeaderA">Profile A</th><th id="compareHeaderB">Profile B</th><th>Who leads / by how much</th></tr></thead>
+            <tbody id="compareRows"></tbody>
+          </table>
+        </div>
+        <p id="compareCaveats" class="feature-muted resource-caveats"></p>
+      </div>
+    </section>
 
       <section class="card milestone-card" aria-labelledby="milestoneTitle">
         <div class="feature-heading">
@@ -427,6 +602,12 @@
   $("csv").addEventListener("click", downloadCsv);
   $("json").addEventListener("click", downloadJson);
 </script>
+<script src="/resource-value.js" defer></script>
+<script src="/resource-history.js" defer></script>
+<script src="/resource-chart.js" defer></script>
+<script src="/resource-trends.js" defer></script>
+<script src="/resource-ui.js" defer></script>
+<script src="/compare-ui.js" defer></script>
 <script src="/features.js" defer></script>
 </body>
 </html>
