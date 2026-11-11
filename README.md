@@ -145,3 +145,29 @@ Example valid raw legacy JSON:
 4. **Not importable:** The normal **Download JSON** button exports a current player API response, not history. It cannot recreate past snapshots. If old snapshots were never saved, past resource values cannot be recovered from the present account response.
 
 The import also accepts a versioned backup with `format: brawl-csv-resource-history`, `version: 1`, and a `history` object. JSON imports are limited to 2 MB. Malformed profile keys and invalid snapshot records are rejected with actionable errors; valid backups can be imported repeatedly without duplicating history.
+
+## Category-level resource history, overlays, and completion
+
+Every new saved snapshot now includes **category-level acquired coins, power points, and completion information** for Power levels, Gadgets, Star powers, Buffies, Gears, Hypercharges, and the overall total. The app still records total coin/power-point value in the older history format so old backups remain importable.
+
+### Account history graph
+
+Under **Progress history**, choose a Category (Total, Power levels, Gadgets, Star powers, Buffies, Gears or Hypercharges) and a Resource/Completion measure (Both coin and power point lines, Coins, Power points, or Completion percentage). With both resources selected, the left and right resource axes are independently scaled. Hover a point to see its exact value and date.
+
+### Compare saved profiles over time
+
+After comparing two saved profiles, **Compare progression over time** overlays both saved histories on the same dates and on shared units/scales. Choose the same category and measure controls used on the individual graph. Each profile is a different color; when both coin and power-point series are selected, solid lines mean coins and dashed lines mean power points. Comparing profiles also records fresh snapshots when an account's resource values change. The existing grouped comparison bar chart is retained for the present-time comparison.
+
+### Completion by category
+
+- **Power levels:** fraction of the Power 11 power-point requirement completed.
+- **Gadgets / Star powers:** fraction of obtainable slots owned, using the live brawler catalogue where available and otherwise the existing two-slot assumption.
+- **Buffies:** fraction of eligible released slots known to be owned, with a minimum–maximum range for unknown API flags.
+- **Overall (core average):** equal-weight mean of the applicable Power, Gadget, Star Power and Buffie completion percentages; this is a category index, not a conversion between currencies.
+- **Gears / Hypercharges:** **N/A** for completion. The player API does not provide complete and reliable availability/eligibility denominators; their acquired value can still be graphed over time.
+
+Completion history for older snapshots is unavailable until a snapshot created by the updated app has been saved. Similarly, older snapshots containing totals but no categories will not be represented as zeros on category graphs. Percentages may change if new content is released or catalogue eligibility changes; saved historical values represent the assumptions at capture time.
+
+### Comparison table difference labels
+
+The final comparison column now identifies the account holding a larger numerical value (for example, `Alpha +12,000 coins` or `Beta +4.5 pp`); `Equal` is shown for ties. For the **remaining** resource rows, the account name means it has *more resources still required*, not that it is ahead in completion. Unavailable completion rows say `N/A` instead of treating missing information as 0.
