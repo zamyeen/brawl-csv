@@ -70,3 +70,24 @@
 .compare-bar-chart { min-height:240px; }
 #compareChartDescription { margin:10px 0 16px; }
 @media(max-width:760px) { .compare-chart-head .resource-scope { width:100%; } }
+
+
+/* Category completion and shared history comparison controls. */
+.resource-graph-filters { display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end; }
+.resource-graph-filters > div { min-width:170px; }
+.resource-graph-filters select { display:block; width:100%; min-width:155px; height:40px; padding:0 11px; color:var(--text); background:#0d1427; border:1px solid var(--border); border-radius:9px; font:inherit; }
+.category-completion-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin:12px 0 20px; }
+.category-completion-tile { border:1px solid var(--border); border-radius:12px; background:var(--panel-2); padding:13px; min-width:0; }
+.category-completion-top { display:flex; align-items:baseline; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+.category-completion-top strong { font-size:12px; }
+.category-completion-top span { font-weight:900; font-size:16px; font-variant-numeric:tabular-nums; color:var(--accent); }
+.category-completion-tile .progress-track { margin:8px 0 0; }
+.category-completion-tile .feature-muted { margin-top:8px; }
+#compareTrendChart { margin-top:10px; }
+#compareTrendHint { margin:9px 0 20px; }
+@media(max-width:900px) { .category-completion-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:600px) {
+ .category-completion-grid { grid-template-columns:1fr; }
+ .resource-graph-filters { width:100%; }
+ .resource-graph-filters > div { flex:1 1 100%; }
+}
