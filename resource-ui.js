@@ -85,6 +85,37 @@
         ? fmt(extra) + " resource value unresolved (unknown Buffie ownership). Bar shows confirmed minimum."
         : "Completion of known core upgrades; gears and Hypercharges are tracked as extras.";
     }
+    const completionRoot=$("resourceCompletionGrid");
+    completionRoot.replaceChildren();
+    for(const [key,label] of [
+      ["power","Power levels"],["gadgets","Gadgets"],["starPowers","Star powers"],
+      ["buffies","Buffies"],["gears","Gears"],["hypercharges","Hypercharges"],
+      ["total","Overall (core average)"]
+    ]){
+      const range=result.completionByCategory?.[key]||null;
+      const tile=document.createElement("div");tile.className="category-completion-tile";
+      const top=document.createElement("div");top.className="category-completion-top";
+      const name=document.createElement("strong");name.textContent=label;
+      const number=document.createElement("span");number.textContent=percentLabel(range);
+      top.append(name,number);tile.append(top);
+      if(range){
+        const track=document.createElement("div");track.className="progress-track";
+        const fill=document.createElement("div");fill.className="progress-fill";
+        fill.style.width=range.min.toFixed(2)+"%";
+        fill.setAttribute("role","progressbar");
+        fill.setAttribute("aria-label",label+" completion");
+        fill.setAttribute("aria-valuemin","0");
+        fill.setAttribute("aria-valuemax","100");
+        fill.setAttribute("aria-valuenow",String(Math.round(range.min)));
+        track.append(fill);tile.append(track);
+      } else {
+        const unavailable=document.createElement("div");
+        unavailable.className="feature-muted";
+        unavailable.textContent="No reliable completion target";
+        tile.append(unavailable);
+      }
+      completionRoot.append(tile);
+    }
     const root = $("resourceRows");
     root.replaceChildren();
     const labels = {
