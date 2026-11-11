@@ -117,3 +117,85 @@ test("two-profile comparison uses totals and actual category values", () => {
   assert.equal(points.at(-1)[1],accountA.acquired.points);
   assert.ok(completion[0][1]>completion[0][2]);
 });
+
+
+test("snapshots preserve per-category completion and unknown gear targets", () => {
+  const store=storage();
+  const result=sample();
+  assert.equal(result.completionByCategory.gears,null);
+  assert.equal(result.completionByCategory.hypercharges,null);
+  history.save(store,tag,"owned",result,{timestamp:"2026-11-11T18:00:00.000Z"});
+  const entry=history.list(store,tag,"owned")[0];
+  assert.ok(entry.completion.power);
+  assert.ok(entry.completion.buffies);
+  assert.ok(entry.completion.total);
+  assert.equal(entry.completion.gears,null);
+  assert.ok(entry.categories.power.remainingCoins>0);
+});
+test("changing category completion alone creates a new auto snapshot", () => {
+  const store=storage(),r=sample();
+  history.save(store,tag,"owned",r,{timestamp:"2026-11-11T18:00:00.000Z"});
+  const other=structuredClone(r);
+  other.completionByCategory.gadgets={min:50,max:100};
+  const status=history.save(store,tag,"owned",other,{timestamp:"2026-11-11T19:00:00.000Z"});
+  assert.equal(status.status,"saved");
+  assert.equal(history.list(store,tag,"owned").length,2);
+});
+test("old imported totals do not invent missing category or completion history", () => {
+  const store=storage();
+  history.importJSON(store,JSON.stringify({[tag+":owned"]:[
+    {timestamp:"2026-10-01T12:00:00.000Z",coins:1500,points:500}
+  ]}));
+  const saved=history.list(store,tag,"owned");
+  assert.equal(saved[0].categories,undefined);
+  assert.equal(saved[0].completion,undefined);
+});
+test("per-category and total timeline values are retrieved independently", () => {
+  const trends=require("../resource-trends.js");
+  const store=storage(),r=sample();
+  history.save(store,tag,"owned",r,{timestamp:"2026-11-11T18:00:00.000Z"});
+  const current=history.list(store,tag,"owned")[0];
+  assert.equal(trends.metricValue(current,"power","coins"),r.categories.power.coins);
+  assert.equal(trends.metricValue(current,"total","coins"),r.acquired.coins);
+  assert.equal(trends.metricValue(current,"total","completion"),r.completionByCategory.total.min);
+  assert.equal(trends.metricValue(current,"gears","completion"),null);
+  const historic={timestamp:"2026-11-10T18:00:00.000Z",coins:1000,points:200};
+  assert.equal(trends.metricValue(historic,"gadgets","coins"),null);
+  assert.equal(trends.seriesPoints([historic,current],"gadgets","coins").length,1);
+});
+test("two-player overlay shares timeline axes while preserving four distinct series", () => {
+  const trends=require("../resource-trends.js");
+  const result=sample();
+  const store=storage();
+  const otherTag="#28PYG";
+  history.save(store,tag,"owned",result,{timestamp:"2026-11-01T18:00:00.000Z"});
+  history.save(store,tag,"owned",result,{manual:true,timestamp:"2026-11-10T18:00:00.000Z"});
+  history.save(store,otherTag,"owned",result,{timestamp:"2026-11-03T18:00:00.000Z"});
+  history.save(store,otherTag,"owned",result,{manual:true,timestamp:"2026-11-09T18:00:00.000Z"});
+  const nodes=[];
+  function element(name) {
+    return {
+      name,attrs:{},children:[],ownerDocument:{createElementNS:(ns,n)=>element(n)},
+      setAttribute(k,v){this.attrs[k]=v;},
+      append(...items){this.children.push(...items);},
+      replaceChildren(){this.children=[];},
+      set textContent(v){this.text=v;}
+    };
+  }
+  const svg=element("svg");
+  trends.draw(svg,[
+    {name:"Alpha",history:history.list(store,tag,"owned")},
+    {name:"Beta",history:history.list(store,otherTag,"owned")}
+  ],{category:"total",resource:"both"});
+  const lines=svg.children.filter(item=>item.name==="polyline");
+  assert.equal(lines.length,4);
+  assert.ok(lines.some(line=>line.attrs["stroke-dasharray"]==="7 5"));
+});
+test("comparison chart category completion includes explicitly unavailable fields", () => {
+  const first=sample(),second=sample();
+  const result=chart.comparisonBars(first,second,"completion");
+  assert.equal(result.length,7);
+  assert.equal(result.find(row=>row[0]==="Gears")[1],null);
+  assert.equal(result.find(row=>row[0]==="Hypercharges")[2],null);
+  assert.ok(result.find(row=>row[0]==="Total (core average)")[1]>=0);
+});
