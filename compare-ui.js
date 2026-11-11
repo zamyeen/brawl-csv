@@ -63,7 +63,21 @@
     });
     $("compareRows").append(tr);
   }
+  let previousComparison=null;
+  function drawComparison(){
+    if(!previousComparison)return;
+    const {a,b,resultA,resultB}=previousComparison;
+    const metric=$("compareChartMetric").value;
+    window.BrawlResourceChart.renderComparison(
+      $("compareBarChart"),resultA,resultB,metric,[a.name||a.tag,b.name||b.tag]);
+    $("compareChartDescription").textContent=metric==="completion"
+      ? "Bars show confirmed minimum completion. Unknown Buffie ownership may increase the final percentage."
+      : "Grouped bars show each account's collected "+(metric==="coins"?"coin":"power-point")+
+        " equivalent value by category and overall. Unreported API resources remain excluded.";
+  }
   function renderComparison(a,b,resultA,resultB,scope) {
+    previousComparison={a,b,resultA,resultB};
+    drawComparison();
     $("compareResults").hidden=false;
     $("compareHeaderA").textContent=a.name||a.tag;
     $("compareHeaderB").textContent=b.name||b.tag;
@@ -115,6 +129,7 @@
     const mySeq=++sequence;
     $("compareProfiles").disabled=true;
     $("compareResults").hidden=true;
+    previousComparison=null;
     $("compareStatus").textContent="Loading fresh values for both profiles…";
     try {
       const scope=$("compareScope").value;
@@ -134,9 +149,10 @@
       if(mySeq===sequence) updateButton();
     }
   }
+  $("compareChartMetric").addEventListener("change",drawComparison);
   $("compareProfileA").addEventListener("change",updateButton);
   $("compareProfileB").addEventListener("change",updateButton);
-  $("compareScope").addEventListener("change",()=>{$("compareResults").hidden=true;});
+  $("compareScope").addEventListener("change",()=>{$("compareResults").hidden=true;previousComparison=null;});
   $("compareProfiles").addEventListener("click",compare);
   // Save action in features.js updates localStorage; clicks happen after the
   // Save button listener, so refresh choices on the same turn.
