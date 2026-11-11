@@ -4,37 +4,21 @@
   const $ = id => document.getElementById(id);
   const fmt = n => new Intl.NumberFormat().format(n);
   const calc = window.BrawlResourceValue;
-  const HISTORY_KEY = "brawl-csv:resource-history:v1";
+  const history = window.BrawlResourceHistory;
+  const chart = window.BrawlResourceChart;
   let player = null;
   let roster = null;
   let rosterPromise = null;
+  let lastResult = null;
+  let lastRequestedScope = null;
+  let lastRecordedTag = null;
+  const storage = window.localStorage;
 
-  function readHistory() {
-    try {
-      const result = JSON.parse(localStorage.getItem(HISTORY_KEY));
-      return result && typeof result === "object" && !Array.isArray(result) ? result : {};
-    } catch { return {}; }
-  }
-  function saveSnapshot(result) {
-    if (!player || !player.tag) return;
-    const tag = String(player.tag).trim().toUpperCase();
-    const key = tag + ":" + result.mode;
-    const history = readHistory();
-    const series = Array.isArray(history[key]) ? history[key] : [];
-    const snapshot = {
-      timestamp: new Date().toISOString(),
-      coins: result.acquired.coins,
-      points: result.acquired.points,
-      count: result.rosterCount,
-      unknownBuffies: result.warnings.buffieSlots
-    };
-    const prior = series[series.length - 1];
-    if (prior && prior.coins === snapshot.coins && prior.points === snapshot.points &&
-        prior.count === snapshot.count && prior.unknownBuffies === snapshot.unknownBuffies) return;
-    const next = [...series, snapshot].slice(-60);
-    history[key] = next;
-    try { localStorage.setItem(HISTORY_KEY, JSON.stringify(history)); }
-    catch { /* Private browsing/storage quotas should not break the account. */ }
+  function saveSnapshot(result, manual = false) {
+    if (!player || !player.tag) return {status:"unavailable"};
+    return history.save(storage, player.tag, result.mode, result, {
+      manual, note: manual ? $("resourceSnapshotNote").value : ""
+    });
   }
   function percentLabel(range) {
     if (!range) return "—";
@@ -48,32 +32,34 @@
     bar.setAttribute("aria-valuenow", String(Math.round(percent)));
   }
   function displayHistory(result) {
-    const tag = String(player.tag || "").trim().toUpperCase();
-    const series = readHistory()[tag + ":" + result.mode] || [];
-    const root = $("resourceHistoryList");
+    const series=history.list(storage,player.tag,result.mode);
+    const root=$("resourceHistoryList");
     root.replaceChildren();
-    const recent = series.slice(-5).reverse();
-    recent.forEach(entry => {
-      const li = document.createElement("li");
-      const date = document.createElement("span");
-      const value = document.createElement("strong");
-      date.textContent = new Date(entry.timestamp).toLocaleString();
-      value.textContent = fmt(entry.coins) + " coins · " + fmt(entry.points) + " power points";
-      li.append(date, value);
+    series.slice(-5).reverse().forEach(entry=>{
+      const li=document.createElement("li");
+      const date=document.createElement("span");
+      const value=document.createElement("strong");
+      date.textContent=new Date(entry.timestamp).toLocaleString() +
+        (entry.source==="manual"?" · Saved checkpoint":"") +
+        (entry.note?" · "+entry.note:"");
+      value.textContent=fmt(entry.coins)+" coins · "+fmt(entry.points)+" power points";
+      li.append(date,value);
       root.append(li);
     });
-    const growth = $("resourceGrowth");
-    if (series.length > 1) {
-      const first = series[0], last = series[series.length - 1];
-      const delta = (v) => (v > 0 ? "+" : "") + fmt(v);
-      growth.textContent = "Since first snapshot: " + delta(last.coins - first.coins) +
-        " coins, " + delta(last.points - first.points) + " power points of resource value.";
-    } else growth.textContent = "A later change in this account's resources will appear here.";
+    $("resourceGrowth").textContent=series.length>1
+      ? "Since first snapshot: "+signed(series.at(-1).coins-series[0].coins)+" coins, "+
+        signed(series.at(-1).points-series[0].points)+" power points."
+      : "Save another checkpoint later to track value growth.";
+    chart.render($("resourceHistoryChart"),series,$("resourceChartMetric").value);
   }
+  function signed(value) {return (value>0?"+":"")+fmt(value);}
+
   function render(record = false) {
     if (!player) return;
     const mode = $("resourceScope").value;
     const result = calc.calculate(player, roster, mode);
+    lastResult = result;
+    lastRequestedScope = mode;
     $("resourceCoinsAcquired").textContent = fmt(result.acquired.coins);
     $("resourcePointsAcquired").textContent = fmt(result.acquired.points);
     $("resourceCoinsRemaining").textContent = fmt(result.remainingKnown.coins);
@@ -137,7 +123,9 @@
     messages.push("Completion percentages use power levels, gadgets, star powers and eligible Buffies. Gears and Hypercharges contribute known resource value but have no reliable completion denominator. Unlock costs, unspent balances and free-reward history are excluded.");
     $("resourceNotes").textContent = messages.join(" ");
 
-    if (record && (mode === "owned" || result.mode === "all")) saveSnapshot(result);
+    if (record && (mode === "owned" || result.mode === "all")) {
+      try {saveSnapshot(result);} catch(error) { $("resourceHistoryStatus").textContent = "Could not save resource history: " + error.message; }
+    }
     displayHistory(result);
   }
   async function loadRoster() {
@@ -156,6 +144,50 @@
     })();
     return rosterPromise;
   }
+  $("resourceSaveSnapshot").addEventListener("click",()=>{
+    if(!player || !lastResult || lastResult.mode!==lastRequestedScope){
+      $("resourceHistoryStatus").textContent="Load the selected roster before saving a checkpoint.";
+      return;
+    }
+    try {
+      saveSnapshot(lastResult,true);
+      $("resourceHistoryStatus").textContent="Snapshot saved for "+(player.name||player.tag)+".";
+      $("resourceSnapshotNote").value="";
+      displayHistory(lastResult);
+    } catch(error) {
+      $("resourceHistoryStatus").textContent="Save failed: "+error.message;
+    }
+  });
+  $("resourceChartMetric").addEventListener("change",()=>{
+    if(player && lastResult) displayHistory(lastResult);
+  });
+  $("resourceExportHistory").addEventListener("click",()=>{
+    const blob=new Blob([history.exportJSON(storage)],{type:"application/json"});
+    const url=URL.createObjectURL(blob);
+    const anchor=document.createElement("a");
+    anchor.href=url;
+    anchor.download="brawl-resource-history.json";
+    document.body.append(anchor);
+    anchor.click();
+    anchor.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+    $("resourceHistoryStatus").textContent="History backup downloaded.";
+  });
+  $("resourceImportHistory").addEventListener("click",()=>$("resourceImportFile").click());
+  $("resourceImportFile").addEventListener("change",async()=>{
+    const file=$("resourceImportFile").files?.[0];
+    if(!file)return;
+    try {
+      if(file.size>2*1024*1024) throw new Error("File is too large (2 MB limit).");
+      const result=history.importJSON(storage,await file.text());
+      $("resourceHistoryStatus").textContent=
+        "Imported "+result.imported+" new snapshots across "+result.profiles+" histories.";
+      if(player && lastResult) displayHistory(lastResult);
+    } catch(error) {
+      $("resourceHistoryStatus").textContent="Import failed: "+error.message;
+    } finally {$("resourceImportFile").value="";}
+  });
+  $("resourceSaveSnapshot").disabled=true;
   $("resourceScope").addEventListener("change", () => {
     if (player) {
       // Record a baseline for each scope; subsequent progress is compared within
@@ -165,6 +197,8 @@
   });
   document.addEventListener("brawl:player-loaded", event => {
     player = event.detail;
+    $("resourceSaveSnapshot").disabled=false;
+    $("resourceHistoryStatus").textContent="";
     render(true);
     loadRoster().then(() => {
       // After catalogue load, record the complete-roster snapshot only if selected.
