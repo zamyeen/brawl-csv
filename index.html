@@ -97,6 +97,7 @@
       .toolbar button { flex: 1; }
     }
   </style>
+  <link rel="stylesheet" href="/features.css" />
 </head>
 <body>
   <main>
@@ -115,6 +116,16 @@
     </section>
     <div id="status" role="status" aria-live="polite"></div>
 
+    <section class="card saved-card" aria-labelledby="savedTitle">
+      <div class="feature-heading">
+        <h2 id="savedTitle">Saved profiles <span id="savedCount" class="feature-muted">0</span></h2>
+        <span class="feature-muted">Saved in this browser</span>
+      </div>
+      <p id="savedEmpty" class="feature-muted">No saved accounts yet. Load a player, then click Save profile.</p>
+      <div id="savedProfiles" class="saved-list"></div>
+      <p id="profilesNotice" class="feature-muted" role="status"></p>
+    </section>
+
     <section id="results" class="results">
       <div class="card summary">
         <div class="identity">
@@ -126,6 +137,61 @@
         <div class="metric"><div class="k">Brawlers</div><div id="brawlerCount" class="v">—</div></div>
         <div class="metric"><div class="k">3v3 wins</div><div id="wins3v3" class="v">—</div></div>
       </div>
+
+      <section class="card milestone-card" aria-labelledby="milestoneTitle">
+        <div class="feature-heading">
+          <div>
+            <h2 id="milestoneTitle">Milestones</h2>
+            <span id="milestonePlayer" class="feature-muted"></span>
+          </div>
+          <button id="saveProfile" class="secondary" disabled>Save profile</button>
+        </div>
+        <div class="milestone-controls">
+          <div>
+            <label for="trophyGoal">TROPHY GOAL</label>
+            <input id="trophyGoal" type="number" min="0" max="1000000" step="1000" value="50000" />
+          </div>
+          <div>
+            <label for="powerGoal">POWER LEVEL GOAL</label>
+            <select id="powerGoal"><option value="9">Power 9</option><option value="10">Power 10</option><option value="11" selected>Power 11</option></select>
+          </div>
+        </div>
+        <div class="milestone-grid">
+          <div class="milestone-tile">
+            <h3>Account trophies</h3>
+            <div id="trophyRemaining" class="milestone-number">—</div>
+            <span class="feature-muted">trophies remaining</span>
+            <div class="progress-track"><div id="trophyBar" class="progress-fill" role="progressbar" aria-label="Trophy goal progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div>
+            <div id="trophyProgressText" class="feature-muted"></div>
+          </div>
+          <div class="milestone-tile">
+            <h3>Power upgrades</h3>
+            <div id="powerRemaining" class="milestone-number">—</div>
+            <span class="feature-muted">owned brawlers below target</span>
+            <div class="progress-track"><div id="powerBar" class="progress-fill" role="progressbar" aria-label="Power goal progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div>
+            <div id="powerProgressText" class="feature-muted"></div>
+          </div>
+          <div class="milestone-tile">
+            <h3>Both gadgets</h3>
+            <div id="gadgetRemaining" class="milestone-number">—</div>
+            <span class="feature-muted">owned brawlers missing at least one</span>
+            <div class="progress-track"><div id="gadgetBar" class="progress-fill" role="progressbar" aria-label="Gadget completion" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div>
+            <div id="gadgetProgressText" class="feature-muted"></div>
+          </div>
+          <div class="milestone-tile">
+            <h3>Both star powers</h3>
+            <div id="starRemaining" class="milestone-number">—</div>
+            <span class="feature-muted">owned brawlers missing at least one</span>
+            <div class="progress-track"><div id="starBar" class="progress-fill" role="progressbar" aria-label="Star power completion" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div>
+            <div id="starProgressText" class="feature-muted"></div>
+          </div>
+        </div>
+        <div class="cost-summary">
+          <div><span class="feature-muted">Power points needed</span><div><strong id="pointsRemaining">—</strong></div></div>
+          <div><span class="feature-muted">Coins needed</span><div><strong id="coinsRemaining">—</strong></div></div>
+        </div>
+        <p class="feature-muted">Upgrade costs cover power-level upgrades for owned brawlers only, not unlocking brawlers, buying gadgets, star powers, gears, or hypercharges. Costs may change with game updates.</p>
+      </section>
 
       <div class="toolbar">
         <div class="left"><input id="filter" placeholder="Filter brawlers…" aria-label="Filter brawlers" /></div>
@@ -263,6 +329,7 @@
     $("wins3v3").textContent = nf.format(player["3vs3Victories"] ?? 0);
     $("results").style.display = "block";
     renderTable();
+    document.dispatchEvent(new CustomEvent("brawl:player-loaded", { detail: player }));
   }
 
   function normalizeTag(input) {
@@ -328,5 +395,6 @@
   $("csv").addEventListener("click", downloadCsv);
   $("json").addEventListener("click", downloadJson);
 </script>
+<script src="/features.js" defer></script>
 </body>
 </html>
