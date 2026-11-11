@@ -1,0 +1,25 @@
+/* Additive styles for profile shortcuts and account milestones. */
+.saved-card { margin-top: 18px; padding: 20px; }
+.feature-heading { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin-bottom: 14px; }
+.feature-heading h2 { margin: 0; font-size: 21px; }
+.feature-muted { color: var(--muted); font-size: 13px; line-height: 1.5; }
+.saved-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; }
+.saved-profile { display: flex; background: var(--panel-2); border: 1px solid var(--border); border-radius: 13px; padding: 8px; align-items: stretch; gap: 8px; }
+.saved-profile-load { flex: 1; min-width: 0; height: auto; padding: 6px; text-align: left; color: var(--text); background: none; }
+.saved-profile-load strong, .saved-profile-load small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.saved-profile-load small { margin-top: 3px; color: var(--muted); font-weight: 500; }
+.saved-profile-remove { height: auto; padding: 6px 9px; font-size: 12px; }
+#saveProfile:disabled { cursor: not-allowed; }
+.milestone-card { margin-top: 18px; padding: 20px; }
+.milestone-controls { display: flex; gap: 12px; flex-wrap: wrap; margin: 8px 0 18px; }
+.milestone-controls > div { min-width: 150px; }
+.milestone-controls input, .milestone-controls select { height: 42px; width: 160px; background: #0d1427; color: var(--text); border: 1px solid var(--border); border-radius: 10px; padding: 0 10px; font: inherit; }
+.milestone-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.milestone-tile { background: var(--panel-2); border: 1px solid var(--border); border-radius: 14px; padding: 15px; }
+.milestone-tile h3 { font-size: 14px; margin: 0 0 8px; }
+.milestone-number { font-size: 27px; font-weight: 900; margin-bottom: 5px; }
+.progress-track { height: 9px; border-radius: 99px; overflow: hidden; background: #0d1427; margin: 12px 0 7px; }
+.progress-fill { height: 100%; border-radius: inherit; background: var(--accent); width: 0%; transition: width .2s ease; }
+.cost-summary { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 16px; }
+.cost-summary strong { font-size: 21px; color: var(--accent); }
+@media (max-width: 760px) { .milestone-grid { grid-template-columns: 1fr; } .milestone-controls > div, .milestone-controls input, .milestone-controls select { width: 100%; } }
