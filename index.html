@@ -188,12 +188,61 @@
         <p id="resourceNotes" class="feature-muted resource-caveats" role="status"></p>
         <div class="resource-history">
           <div class="feature-heading">
-            <div><h3>Progress history</h3><p class="feature-muted">Saved locally on this browser when you load an account.</p></div>
+            <div>
+              <h3>Progress history</h3>
+              <p class="feature-muted">Saved locally on this browser. Automatically records changed account values; add named checkpoints whenever you like.</p>
+            </div>
+            <div class="resource-history-actions">
+              <button id="resourceSaveSnapshot" class="primary" type="button">Save snapshot</button>
+              <button id="resourceExportHistory" class="secondary" type="button">Export history</button>
+              <button id="resourceImportHistory" class="secondary" type="button">Import history</button>
+              <input id="resourceImportFile" type="file" accept=".json,application/json" hidden aria-label="Import resource history JSON" />
+            </div>
           </div>
-          <div id="resourceGrowth" class="feature-muted"></div>
+          <label for="resourceSnapshotNote">OPTIONAL SNAPSHOT NOTE</label>
+          <input id="resourceSnapshotNote" type="text" maxlength="100" placeholder="e.g. After upgrading Shelly" />
+          <div id="resourceHistoryStatus" class="feature-muted" role="status" aria-live="polite"></div>
+          <div class="resource-chart-heading">
+            <div id="resourceGrowth" class="feature-muted"></div>
+            <div class="resource-scope">
+              <label for="resourceChartMetric">GRAPH RESOURCE</label>
+              <select id="resourceChartMetric">
+                <option value="coins">Coins</option>
+                <option value="points">Power points</option>
+              </select>
+            </div>
+          </div>
+          <svg id="resourceHistoryChart" class="resource-history-chart" viewBox="0 0 700 240" aria-label="Resource value over time"></svg>
           <ul id="resourceHistoryList" class="resource-history-list"></ul>
         </div>
       </section>
+
+
+    <section class="card resource-card" aria-labelledby="compareTitle">
+      <div class="resource-heading">
+        <div>
+          <h2 id="compareTitle">Compare saved profiles</h2>
+          <p class="feature-muted">Load two saved player tags and compare their current resource-equivalent values.</p>
+        </div>
+      </div>
+      <div class="compare-controls">
+        <div><label for="compareProfileA">PROFILE A</label><select id="compareProfileA"><option value="">Choose saved profile</option></select></div>
+        <div><label for="compareProfileB">PROFILE B</label><select id="compareProfileB"><option value="">Choose saved profile</option></select></div>
+        <button id="compareProfiles" class="primary" type="button" disabled>Compare profiles</button>
+      </div>
+      <div class="resource-scope"><label for="compareScope">COMPLETION TARGET</label><select id="compareScope"><option value="owned">Owned brawlers</option><option value="all">Entire roster</option></select></div>
+      <p id="compareStatus" class="feature-muted" role="status" aria-live="polite">Save at least two player profiles to compare them.</p>
+      <div id="compareResults" hidden>
+        <div id="compareNames" class="compare-names"></div>
+        <div class="resource-table-wrap">
+          <table class="resource-table" aria-label="Comparison of two saved profiles">
+            <thead><tr><th>Metric</th><th id="compareHeaderA">Profile A</th><th id="compareHeaderB">Profile B</th><th>Difference (A − B)</th></tr></thead>
+            <tbody id="compareRows"></tbody>
+          </table>
+        </div>
+        <p id="compareCaveats" class="feature-muted resource-caveats"></p>
+      </div>
+    </section>
 
       <section class="card milestone-card" aria-labelledby="milestoneTitle">
         <div class="feature-heading">
@@ -485,7 +534,10 @@
   $("json").addEventListener("click", downloadJson);
 </script>
 <script src="/resource-value.js" defer></script>
+<script src="/resource-history.js" defer></script>
+<script src="/resource-chart.js" defer></script>
 <script src="/resource-ui.js" defer></script>
+<script src="/compare-ui.js" defer></script>
 <script src="/features.js" defer></script>
 </body>
 </html>
