@@ -201,18 +201,38 @@
           </div>
           <label for="resourceSnapshotNote">OPTIONAL SNAPSHOT NOTE</label>
           <input id="resourceSnapshotNote" type="text" maxlength="100" placeholder="e.g. After upgrading Shelly" />
+          <details class="resource-import-help">
+            <summary>What can I import? Instructions for older history</summary>
+            <div class="resource-import-instructions feature-muted">
+              <p><strong>Moving from another browser?</strong> In the old browser, open this website, choose <strong>Export history</strong>, then select that downloaded <code>.json</code> file here with <strong>Import history</strong>. Existing records are merged without duplicate snapshots.</p>
+              <p><strong>Older saved progress:</strong> If you already used the Resource Value dashboard in this same browser, earlier snapshots should appear automatically. If you only have the old browser-storage value under <code>brawl-csv:resource-history:v1</code>, save that JSON text to a <code>.json</code> file and import it directly. The importer accepts that older format too.</p>
+              <p><strong>Required for raw older data:</strong> A JSON object with entries named <code>#PLAYERTAG:owned</code> or <code>#PLAYERTAG:all</code>. Each entry is an array of snapshots with an ISO-8601 timestamp and nonnegative whole-number <code>coins</code> and <code>points</code>. For example:</p>
+              <pre><code>{
+  "#2P0Y8Q9:owned": [
+    {
+      "timestamp": "2026-11-01T12:00:00.000Z",
+      "coins": 50000,
+      "points": 20000
+    }
+  ]
+}</code></pre>
+              <p>The regular <strong>Download JSON</strong> player-account export is not a history backup and cannot be imported here. You cannot reconstruct past progress if no earlier snapshots were saved. Maximum import file size: <strong>2 MB</strong>. History stays on this browser unless you export it.</p>
+            </div>
+          </details>
           <div id="resourceHistoryStatus" class="feature-muted" role="status" aria-live="polite"></div>
           <div class="resource-chart-heading">
             <div id="resourceGrowth" class="feature-muted"></div>
             <div class="resource-scope">
               <label for="resourceChartMetric">GRAPH RESOURCE</label>
               <select id="resourceChartMetric">
-                <option value="coins">Coins</option>
-                <option value="points">Power points</option>
+                <option value="both" selected>Both (two axes)</option>
+                <option value="coins">Coins only</option>
+                <option value="points">Power points only</option>
               </select>
             </div>
           </div>
-          <svg id="resourceHistoryChart" class="resource-history-chart" viewBox="0 0 700 240" aria-label="Resource value over time"></svg>
+          <p id="resourceChartHint" class="feature-muted">Gold = coins (left scale); blue = power points (right scale). Hover a point for its exact value and date.</p>
+          <svg id="resourceHistoryChart" class="resource-history-chart" viewBox="0 0 760 270" aria-label="Resource value over time"></svg>
           <ul id="resourceHistoryList" class="resource-history-list"></ul>
         </div>
       </section>
@@ -234,6 +254,19 @@
       <p id="compareStatus" class="feature-muted" role="status" aria-live="polite">Save at least two player profiles to compare them.</p>
       <div id="compareResults" hidden>
         <div id="compareNames" class="compare-names"></div>
+        <div class="compare-chart-head">
+          <h3>Visual comparison</h3>
+          <div class="resource-scope">
+            <label for="compareChartMetric">SHOW</label>
+            <select id="compareChartMetric">
+              <option value="coins" selected>Coin value</option>
+              <option value="points">Power point value</option>
+              <option value="completion">Completion %</option>
+            </select>
+          </div>
+        </div>
+        <svg id="compareBarChart" class="resource-history-chart compare-bar-chart" viewBox="0 0 900 450" aria-label="Visual comparison of two saved profiles"></svg>
+        <p id="compareChartDescription" class="feature-muted"></p>
         <div class="resource-table-wrap">
           <table class="resource-table" aria-label="Comparison of two saved profiles">
             <thead><tr><th>Metric</th><th id="compareHeaderA">Profile A</th><th id="compareHeaderB">Profile B</th><th>Difference (A − B)</th></tr></thead>
