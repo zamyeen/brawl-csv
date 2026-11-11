@@ -98,6 +98,7 @@
     }
   </style>
   <link rel="stylesheet" href="/features.css" />
+  <link rel="stylesheet" href="/resource.css" />
 </head>
 <body>
   <main>
@@ -137,6 +138,62 @@
         <div class="metric"><div class="k">Brawlers</div><div id="brawlerCount" class="v">—</div></div>
         <div class="metric"><div class="k">3v3 wins</div><div id="wins3v3" class="v">—</div></div>
       </div>
+
+
+      <section class="card resource-card" aria-labelledby="resourceTitle">
+        <div class="resource-heading">
+          <div>
+            <h2 id="resourceTitle">Account Resource Value</h2>
+            <p class="feature-muted">Standard upgrade value of collected progression, not coins or power points currently in your inventory.</p>
+          </div>
+          <div class="resource-scope">
+            <label for="resourceScope">COMPLETION TARGET</label>
+            <select id="resourceScope">
+              <option value="owned">Owned brawlers</option>
+              <option value="all">Entire roster</option>
+            </select>
+          </div>
+        </div>
+        <div class="resource-totals">
+          <div class="resource-summary">
+            <h3>COIN VALUE ACQUIRED</h3>
+            <div id="resourceCoinsAcquired" class="value">—</div>
+            <p><strong id="resourceCoinsRemaining">—</strong> coins still needed for known core upgrades</p>
+          </div>
+          <div class="resource-summary">
+            <h3>POWER POINT VALUE ACQUIRED</h3>
+            <div id="resourcePointsAcquired" class="value">—</div>
+            <p><strong id="resourcePointsRemaining">—</strong> power points still needed for known core upgrades</p>
+          </div>
+        </div>
+        <div class="resource-progress">
+          <div class="resource-progress-card">
+            <div class="flexline"><h3>Coin completion</h3><strong id="resourceCoinsPercent">—</strong></div>
+            <div class="progress-track"><div class="progress-fill" id="resourceCoinsBar" role="progressbar" aria-label="Coin completion for known core upgrade targets" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div>
+            <div id="resourceCoinsProgressDetail" class="feature-muted"></div>
+          </div>
+          <div class="resource-progress-card">
+            <div class="flexline"><h3>Power point completion</h3><strong id="resourcePointsPercent">—</strong></div>
+            <div class="progress-track"><div class="progress-fill" id="resourcePointsBar" role="progressbar" aria-label="Power point completion for known core upgrade targets" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div>
+            <div id="resourcePointsProgressDetail" class="feature-muted"></div>
+          </div>
+        </div>
+        <h3 class="resource-section-heading">Resource breakdown</h3>
+        <div class="resource-table-wrap">
+          <table class="resource-table" aria-label="Resource-equivalent breakdown">
+            <thead><tr><th>Category</th><th>Coins acquired</th><th>Power points acquired</th><th>Known coins remaining</th><th>Known points remaining</th></tr></thead>
+            <tbody id="resourceRows"></tbody>
+          </table>
+        </div>
+        <p id="resourceNotes" class="feature-muted resource-caveats" role="status"></p>
+        <div class="resource-history">
+          <div class="feature-heading">
+            <div><h3>Progress history</h3><p class="feature-muted">Saved locally on this browser when you load an account.</p></div>
+          </div>
+          <div id="resourceGrowth" class="feature-muted"></div>
+          <ul id="resourceHistoryList" class="resource-history-list"></ul>
+        </div>
+      </section>
 
       <section class="card milestone-card" aria-labelledby="milestoneTitle">
         <div class="feature-heading">
@@ -427,6 +484,8 @@
   $("csv").addEventListener("click", downloadCsv);
   $("json").addEventListener("click", downloadJson);
 </script>
+<script src="/resource-value.js" defer></script>
+<script src="/resource-ui.js" defer></script>
 <script src="/features.js" defer></script>
 </body>
 </html>
