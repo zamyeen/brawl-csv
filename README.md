@@ -84,3 +84,9 @@ Progress uses only brawlers present in the player's API response. The two-gadget
 - **At least one star power:** Counts and lists owned brawlers with an empty/missing star power array.
 
 These milestones refresh with each player lookup, like existing upgrade milestones. Buffie availability and eligibility may not be fully represented by the API; the Buffie estimate is limited to explicitly reported slots.
+
+## Buffie eligibility fix (November 2026)
+
+The Buffies remaining milestone uses an explicit released-brawler roster (33 listed as of November 2026) instead of treating all owned brawlers as Buffie-eligible. Ownership is counted only when the API explicitly returns a boolean for one of the three Buffie categories (Gadget, Star Power, Hypercharge); unknown fields are excluded and displayed separately. The roster is maintained in `features.js` and should be updated as releases change.
+
+Sources: https://brawlmetrics.gg/buffies and https://supercell.com/en/games/brawlstars/blog/game-updates/release-notes-november-2026/
