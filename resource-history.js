@@ -21,6 +21,12 @@
     if (!KEY_PATTERN.test(key)) throw new Error("Invalid player tag or snapshot scope.");
     return key;
   }
+  const COMPLETION = [...CATEGORIES,"total"];
+  function normalizeRange(value) {
+    if (!value || !Number.isFinite(value.min) || !Number.isFinite(value.max) ||
+        value.min < 0 || value.max > 100 || value.min > value.max) return null;
+    return {min:value.min,max:value.max};
+  }
   function normalizedSnapshot(item) {
     if (!item || typeof item !== "object" || Array.isArray(item)) return null;
     const time = Date.parse(item.timestamp);
@@ -44,9 +50,19 @@
         const b = item.categories[category];
         if (b && typeof b === "object") {
           result.categories[category] = {
-            coins: value(b.coins), points: value(b.points)
+            coins: value(b.coins), points: value(b.points),
+            remainingCoins: value(b.remainingCoins),
+            remainingPoints: value(b.remainingPoints),
+            unknownCoins: value(b.unknownCoins),
+            unknownPoints: value(b.unknownPoints)
           };
         }
+      });
+    }
+    if (item.completion && typeof item.completion === "object" && !Array.isArray(item.completion)) {
+      result.completion = {};
+      COMPLETION.forEach(key=>{
+        result.completion[key]=normalizeRange(item.completion[key]);
       });
     }
     return result;
@@ -88,8 +104,13 @@
       remainingPoints: result.remainingKnown.points,
       source, note,
       categories: Object.fromEntries(CATEGORIES.map(c => [
-        c, {coins: result.categories[c].coins, points: result.categories[c].points}
-      ]))
+        c, {coins: result.categories[c].coins, points: result.categories[c].points,
+          remainingCoins: result.categories[c].remainingCoins,
+          remainingPoints: result.categories[c].remainingPoints,
+          unknownCoins: result.categories[c].unknownCoins,
+          unknownPoints: result.categories[c].unknownPoints}
+      ])),
+      completion: result.completionByCategory
     });
   }
   function save(storage, tag, scope, result, options = {}) {
@@ -104,7 +125,9 @@
     const last = series[series.length - 1];
     const unchanged = last && last.coins === next.coins && last.points === next.points &&
       last.count === next.count && last.unknownBuffies === next.unknownBuffies &&
-      last.remainingCoins === next.remainingCoins && last.remainingPoints === next.remainingPoints;
+      last.remainingCoins === next.remainingCoins && last.remainingPoints === next.remainingPoints &&
+      JSON.stringify(last.categories || null) === JSON.stringify(next.categories || null) &&
+      JSON.stringify(last.completion || null) === JSON.stringify(next.completion || null);
     if (unchanged && !options.manual) return {status: "unchanged", snapshot: last};
     history[key] = [...series, next].slice(-LIMIT);
     write(storage, history);
