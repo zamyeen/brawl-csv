@@ -166,6 +166,31 @@
       if (!possible) return null;
       return {min: 100 * acquired / possible, max: 100 * (acquired + unknown) / possible};
     }
+
+    // An honest category completion metric uses an actual known maximum.
+    // Power levels use their cumulative power-point requirement; gadgets and
+    // star powers use available slots; Buffies use eligible known/unknown slots.
+    // Gear/Hypercharge availability is not complete in the player API, so their
+    // completion is unavailable rather than falsely treated as 0% or 100%.
+    const completionByCategory = {
+      power: percentRange(byCategory.power.points, byCategory.power.remainingPoints, 0),
+      gadgets: percentRange(byCategory.gadgets.coins, byCategory.gadgets.remainingCoins, 0),
+      starPowers: percentRange(byCategory.starPowers.coins, byCategory.starPowers.remainingCoins, 0),
+      buffies: percentRange(byCategory.buffies.points, byCategory.buffies.remainingPoints, byCategory.buffies.unknownPoints),
+      gears: null,
+      hypercharges: null,
+      total: null
+    };
+    // "Total" is an explicitly equal-weight average of the applicable core
+    // category percentages, not a fictitious conversion of coins into points.
+    const tracked = ["power", "gadgets", "starPowers", "buffies"]
+      .map(key => completionByCategory[key]).filter(Boolean);
+    if (tracked.length) {
+      completionByCategory.total = {
+        min: tracked.reduce((sum, x) => sum + x.min, 0) / tracked.length,
+        max: tracked.reduce((sum, x) => sum + x.max, 0) / tracked.length
+      };
+    }
     return {
       mode: isEntireRoster ? "all" : "owned",
       rosterCount: rows.length,
@@ -174,6 +199,7 @@
       eligibleBuffieBrawlers: buffieEligible,
       reportedBuffieSlots,
       categories: byCategory,
+      completionByCategory,
       acquired: {coins: coreCoins + extraCoins, points: corePoints},
       coreAcquired: {coins: coreCoins, points: corePoints},
       remainingKnown: {coins: remainingCoins, points: remainingPoints},
