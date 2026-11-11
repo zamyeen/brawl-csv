@@ -223,12 +223,23 @@
           <div class="resource-chart-heading">
             <div id="resourceGrowth" class="feature-muted"></div>
             <div class="resource-scope">
-              <label for="resourceChartMetric">GRAPH RESOURCE</label>
-              <select id="resourceChartMetric">
-                <option value="both" selected>Both (two axes)</option>
-                <option value="coins">Coins only</option>
-                <option value="points">Power points only</option>
-              </select>
+              <div class="resource-graph-filters">
+                <div><label for="resourceChartCategory">CATEGORY</label>
+                  <select id="resourceChartCategory"><option value="total">Total resource value</option>
+                <option value="power">Power levels</option>
+                <option value="gadgets">Gadgets</option>
+                <option value="starPowers">Star powers</option>
+                <option value="buffies">Buffies</option>
+                <option value="gears">Gears</option>
+                <option value="hypercharges">Hypercharges</option></select></div>
+                <div><label for="resourceChartMetric">RESOURCE / COMPLETION</label>
+                  <select id="resourceChartMetric">
+                    <option value="both" selected>Coins + power points</option>
+                    <option value="coins">Coins</option>
+                    <option value="points">Power points</option>
+                    <option value="completion">Completion percentage</option>
+                  </select></div>
+              </div>
             </div>
           </div>
           <p id="resourceChartHint" class="feature-muted">Gold = coins (left scale); blue = power points (right scale). Hover a point for its exact value and date.</p>
@@ -267,9 +278,31 @@
         </div>
         <svg id="compareBarChart" class="resource-history-chart compare-bar-chart" viewBox="0 0 900 450" aria-label="Visual comparison of two saved profiles"></svg>
         <p id="compareChartDescription" class="feature-muted"></p>
+        <div class="compare-chart-head">
+          <h3>Compare progression over time</h3>
+          <div class="resource-graph-filters">
+            <div><label for="compareTrendCategory">CATEGORY</label>
+              <select id="compareTrendCategory"><option value="total">Total resource value</option>
+                <option value="power">Power levels</option>
+                <option value="gadgets">Gadgets</option>
+                <option value="starPowers">Star powers</option>
+                <option value="buffies">Buffies</option>
+                <option value="gears">Gears</option>
+                <option value="hypercharges">Hypercharges</option></select></div>
+            <div><label for="compareTrendResource">RESOURCE / COMPLETION</label>
+              <select id="compareTrendResource">
+                <option value="both" selected>Coins + power points</option>
+                <option value="coins">Coins</option>
+                <option value="points">Power points</option>
+                <option value="completion">Completion percentage</option>
+              </select></div>
+          </div>
+        </div>
+        <svg id="compareTrendChart" class="resource-history-chart" viewBox="0 0 780 295" aria-label="Both saved profiles' resource progression over time"></svg>
+        <p id="compareTrendHint" class="feature-muted">Each account uses its own line color. Missing historical category data is not assumed to be zero; load and save new snapshots to track categories.</p>
         <div class="resource-table-wrap">
           <table class="resource-table" aria-label="Comparison of two saved profiles">
-            <thead><tr><th>Metric</th><th id="compareHeaderA">Profile A</th><th id="compareHeaderB">Profile B</th><th>Difference (A − B)</th></tr></thead>
+            <thead><tr><th>Metric</th><th id="compareHeaderA">Profile A</th><th id="compareHeaderB">Profile B</th><th>Who leads / by how much</th></tr></thead>
             <tbody id="compareRows"></tbody>
           </table>
         </div>
@@ -569,6 +602,7 @@
 <script src="/resource-value.js" defer></script>
 <script src="/resource-history.js" defer></script>
 <script src="/resource-chart.js" defer></script>
+<script src="/resource-trends.js" defer></script>
 <script src="/resource-ui.js" defer></script>
 <script src="/compare-ui.js" defer></script>
 <script src="/features.js" defer></script>
