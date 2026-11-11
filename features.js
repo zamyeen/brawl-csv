@@ -4,6 +4,20 @@
   const STORAGE_KEY = "brawl-csv:saved-profiles:v1";
   const GOALS_KEY = "brawl-csv:milestone-goals:v1";
   const TAG_PATTERN = /^#[0289PYLQGRJCUV]+$/;
+  // Released Buffie roster (BrawlMetrics; six November additions also noted
+  // in Supercell's November 2026 release notes). Review when updates add more.
+  const BUFFIE_ELIGIBLE = new Set([
+    "8-BIT", "AMBER", "BERRY", "BIBI", "BO", "BROCK", "BULL",
+    "CHESTER", "CHUCK", "COLETTE", "COLT", "CROW", "EDGAR",
+    "EL PRIMO", "EMZ", "FRANK", "GALE", "GRIFF", "GUS",
+    "LEON", "LOU", "MANDY", "MAX", "MEG", "MORTIS",
+    "MR. P", "NITA", "POCO", "RICO", "SHADE", "SHELLY",
+    "SPIKE", "SURGE"
+  ]);
+  function isBuffieEligible(brawler) {
+    return BUFFIE_ELIGIBLE.has(String(brawler.name || "").trim().toUpperCase());
+  }
+
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => new Intl.NumberFormat().format(n);
   let currentPlayer = null;
@@ -168,7 +182,8 @@
     // Count explicit true/false values, never treat a missing field as an unowned Buffie.
     const kinds = ["hyperCharge", "gadget", "starPower"];
     const missingByKind = {hyperCharge: 0, gadget: 0, starPower: 0};
-    let buffieOwned = 0, buffieKnown = 0, unknownBuffies = 0;
+    let buffieOwned = 0, buffieKnown = 0, unknownEligibleSlots = 0;
+    let eligibleBrawlers = 0;
     let firstGadgets = 0, firstStarPowers = 0;
     const noGadgets = [], noStarPowers = [];
     brawlers.forEach((brawler) => {
@@ -178,24 +193,26 @@
       else noGadgets.push(String(brawler.name || "Unknown"));
       if (starPowers.length > 0) firstStarPowers++;
       else noStarPowers.push(String(brawler.name || "Unknown"));
+
+      if (!isBuffieEligible(brawler)) return;
+      eligibleBrawlers++;
       kinds.forEach((kind) => {
         const value = brawler.buffies?.[kind];
         if (value === true) { buffieOwned++; buffieKnown++; }
         else if (value === false) { missingByKind[kind]++; buffieKnown++; }
-        else unknownBuffies++;
+        else unknownEligibleSlots++;
       });
     });
     const buffieMissing = Object.values(missingByKind).reduce((a, b) => a + b, 0);
     setMetric("buffieRemaining", buffieKnown ? buffieMissing : "—");
     renderProgress("buffieBar", buffieOwned, buffieKnown);
     $("buffieProgressText").textContent = buffieKnown
-      ? fmt(buffieOwned) + " / " + fmt(buffieKnown) + " API-reported Buffies collected"
-      : "No Buffie ownership data reported";
-    $("buffieBreakdown").textContent = buffieKnown
-      ? "Missing: " + fmt(missingByKind.hyperCharge) + " Hypercharge, " +
-        fmt(missingByKind.gadget) + " Gadget, " + fmt(missingByKind.starPower) +
-        " Star Power" + (unknownBuffies ? ". " + fmt(unknownBuffies) + " unreported slots excluded." : ".")
-      : "Unknown / ineligible slots are not counted as missing.";
+      ? fmt(buffieOwned) + " / " + fmt(buffieKnown) + " reported eligible Buffies collected"
+      : "No eligible Buffie ownership data reported";
+    $("buffieBreakdown").textContent = fmt(eligibleBrawlers) + " owned Buffie-eligible brawlers. Missing: " +
+      fmt(missingByKind.hyperCharge) + " Hypercharge, " + fmt(missingByKind.gadget) +
+      " Gadget, " + fmt(missingByKind.starPower) + " Star Power." +
+      (unknownEligibleSlots ? " " + fmt(unknownEligibleSlots) + " eligible slots have unknown ownership and are excluded." : "");
     setMetric("gadgetFirstRemaining", total - firstGadgets);
     renderProgress("gadgetFirstBar", firstGadgets, total);
     $("gadgetFirstProgressText").textContent = fmt(firstGadgets) + " / " + fmt(total) + " owned brawlers with a gadget";
