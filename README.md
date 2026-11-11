@@ -108,3 +108,17 @@ The **Account Resource Value** panel appears above Milestones after loading a pl
 Standard price assumptions: level transition arrays defined in \`resource-value.js\`; gadget = 1,000 coins, star power = 2,000 coins, ability Buffie = 1,000 coins + 2,000 power points, Hypercharge = 5,000 coins, gear by rarity. Free rewards and previous discounts are still valued at current standard cost rather than historical purchase price. Unspent coins/power points, unlocking brawlers, skins, and cosmetics are not counted.
 
 This feature uses \`resource-value.js\` for reusable calculations, \`resource-ui.js\` for rendering/snapshot storage, \`resource.css\` for layout, and \`api/brawlers.js\` for complete-roster metadata. Calculation regression tests live in \`tests/resource-value.test.js\`; run with \`node --test tests/resource-value.test.js\`.
+
+
+## Saved Resource Value checkpoints, chart, and comparison
+
+After loading an account, the Resource Value panel now has:
+
+- **Save snapshot:** explicitly record current account resource values, even when nothing has changed. An optional note (up to 100 characters) can describe upgrades, events or milestones. Loading a profile still records a snapshot automatically **only if its value changed**; no background polling occurs.
+- **Progress graph:** an SVG line graph plots saved coin or power-point values over time. Choose the unit with the Graph resource selector. Hover a point to see the timestamp, exact amount and optional note. Gold dots indicate automatic value changes; cyan dots indicate manual checkpoints.
+- **Export history / Import history:** back up all profiles' local snapshots in JSON, move progress history to another browser, or merge an existing backup without duplicating identical entries. Imports accept only the application's versioned history format and files of up to 2 MB. Stored series are capped at 500 snapshots per player per scope. Older \`resource-history:v1\` snapshots remain readable.
+- **Compare saved profiles:** save at least two profiles with the existing **Save profile** button, select both tags in the new comparison section, choose Owned brawlers or Entire roster, and press **Compare profiles**. Both current player profiles are fetched live. The comparison displays resource totals, remaining costs, category-level coins and power points, completion ranges, and the A-minus-B difference. No comparison data is permanently stored.
+
+Snapshot history is browser-local \`localStorage\`, **not** cloud storage or synced across devices. Export a backup if you want to preserve it across browsers or after clearing site data. No actual resource cost history or unspent account balances are available from the player API. Live comparison requires the Brawl Stars API; full-roster comparison additionally requires \`/api/brawlers\`.
+
+Run the additional tests with \`node --test tests/resource-history.test.js\` or both test files with \`node --test tests/*.test.js\`.
