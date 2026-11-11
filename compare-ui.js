@@ -69,6 +69,7 @@
     $("compareHeaderB").textContent=b.name||b.tag;
     $("compareNames").textContent=(a.name||a.tag)+" vs. "+(b.name||b.tag)+" · "+(scope==="all"?"Entire roster":"Owned brawlers");
     $("compareRows").replaceChildren();
+    const pct=n=>n.toFixed(1)+"%";
     const metrics=[
       ["Brawlers owned",resultA.ownedCount,resultB.ownedCount,fmt],
       ["Coins acquired",resultA.acquired.coins,resultB.acquired.coins,fmt],
@@ -76,6 +77,14 @@
       ["Known coins remaining",resultA.remainingKnown.coins,resultB.remainingKnown.coins,fmt],
       ["Known power points remaining",resultA.remainingKnown.points,resultB.remainingKnown.points,fmt]
     ];
+    for(const [key,label] of [["coins","Coin completion"],["points","Power point completion"]]){
+      const aRange=resultA.progress[key],bRange=resultB.progress[key];
+      if(aRange&&bRange){
+        metrics.push([label+" (confirmed minimum)",aRange.min,bRange.min,pct]);
+        if(aRange.max>aRange.min||bRange.max>bRange.min)
+          metrics.push([label+" (possible maximum)",aRange.max,bRange.max,pct]);
+      }
+    }
     for(const [category,label] of [
       ["power","Power levels"],["gadgets","Gadgets"],["starPowers","Star powers"],
       ["buffies","Buffies"],["gears","Gears"],["hypercharges","Hypercharges"]]){
