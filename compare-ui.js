@@ -53,17 +53,36 @@
     if(!Array.isArray(data.items)||!data.items.length)throw Error("Invalid roster data.");
     return data.items;
   }
-  function appendRow(label,a,b,format) {
+  function appendRow(label,a,b,format,unit="",higherBetter=true) {
     const tr=document.createElement("tr");
-    const values=[label,format(a),format(b),format(a-b)];
-    values.forEach((value,i)=>{
-      const td=document.createElement("td");
-      td.textContent=i===3?(a-b>0?"+":"")+value:value;
-      tr.append(td);
+    const left=$("compareHeaderA").textContent,right=$("compareHeaderB").textContent;
+    const diff=a==null||b==null?"Unavailable"
+      :Math.abs(a-b)<0.0001?"Equal"
+      :(a>b?left:right)+" +"+(unit==="pp"?Math.abs(a-b).toFixed(1)+" pp"
+          :format(Math.abs(a-b))+(unit?" "+unit:""))+
+          (higherBetter?"":" (more remaining)");
+    [label,a==null?"N/A":format(a),b==null?"N/A":format(b),diff].forEach(value=>{
+      const td=document.createElement("td");td.textContent=value;tr.append(td);
     });
     $("compareRows").append(tr);
   }
+  const history=window.BrawlResourceHistory;
   let previousComparison=null;
+  function drawTrend(){
+    if(!previousComparison)return;
+    const {a,b,scope}=previousComparison;
+    const category=$("compareTrendCategory").value;
+    const resource=$("compareTrendResource").value;
+    window.BrawlTrendChart.draw($("compareTrendChart"),[
+      {name:a.name||a.tag,history:history.list(localStorage,a.tag,scope)},
+      {name:b.name||b.tag,history:history.list(localStorage,b.tag,scope)}
+    ],{category,resource});
+    $("compareTrendHint").textContent=resource==="completion"&&(category==="gears"||category==="hypercharges")
+      ?"Completion is unavailable for gears and Hypercharges without a reliable maximum."
+      :resource==="completion"
+        ?"Completion is a confirmed minimum. The overall metric averages measurable core categories equally."
+        :"Each account has its own color. With both resources selected, solid lines show coins and dashed lines show power points on shared per-resource scales. Older snapshots without category data are skipped.";
+  }
   function drawComparison(){
     if(!previousComparison)return;
     const {a,b,resultA,resultB}=previousComparison;
@@ -76,8 +95,9 @@
         " equivalent value by category and overall. Unreported API resources remain excluded.";
   }
   function renderComparison(a,b,resultA,resultB,scope) {
-    previousComparison={a,b,resultA,resultB};
+    previousComparison={a,b,resultA,resultB,scope};
     drawComparison();
+    drawTrend();
     $("compareResults").hidden=false;
     $("compareHeaderA").textContent=a.name||a.tag;
     $("compareHeaderB").textContent=b.name||b.tag;
@@ -85,29 +105,40 @@
     $("compareRows").replaceChildren();
     const pct=n=>n.toFixed(1)+"%";
     const metrics=[
-      ["Brawlers owned",resultA.ownedCount,resultB.ownedCount,fmt],
-      ["Coins acquired",resultA.acquired.coins,resultB.acquired.coins,fmt],
-      ["Power points acquired",resultA.acquired.points,resultB.acquired.points,fmt],
-      ["Known coins remaining",resultA.remainingKnown.coins,resultB.remainingKnown.coins,fmt],
-      ["Known power points remaining",resultA.remainingKnown.points,resultB.remainingKnown.points,fmt]
+      ["Brawlers owned",resultA.ownedCount,resultB.ownedCount,fmt,"brawlers"],
+      ["Coins acquired",resultA.acquired.coins,resultB.acquired.coins,fmt,"coins"],
+      ["Power points acquired",resultA.acquired.points,resultB.acquired.points,fmt,"power points"],
+      ["Known coins remaining",resultA.remainingKnown.coins,resultB.remainingKnown.coins,fmt,"coins",false],
+      ["Known power points remaining",resultA.remainingKnown.points,resultB.remainingKnown.points,fmt,"power points",false]
     ];
     for(const [key,label] of [["coins","Coin completion"],["points","Power point completion"]]){
       const aRange=resultA.progress[key],bRange=resultB.progress[key];
       if(aRange&&bRange){
-        metrics.push([label+" (confirmed minimum)",aRange.min,bRange.min,pct]);
+        metrics.push([label+" (confirmed minimum)",aRange.min,bRange.min,pct,"pp"]);
         if(aRange.max>aRange.min||bRange.max>bRange.min)
-          metrics.push([label+" (possible maximum)",aRange.max,bRange.max,pct]);
+          metrics.push([label+" (possible maximum)",aRange.max,bRange.max,pct,"pp"]);
       }
+    }
+    for(const [key,label] of [
+      ["power","Power levels"],["gadgets","Gadgets"],["starPowers","Star powers"],
+      ["buffies","Buffies"],["gears","Gears"],["hypercharges","Hypercharges"],
+      ["total","Overall (core average)"]
+    ]){
+      const ca=resultA.completionByCategory?.[key];
+      const cb=resultB.completionByCategory?.[key];
+      metrics.push([label+" · completion",ca?.min??null,cb?.min??null,pct,"pp"]);
+      if(ca&&cb&&(ca.max>ca.min||cb.max>cb.min))
+        metrics.push([label+" · possible completion",ca.max,cb.max,pct,"pp"]);
     }
     for(const [category,label] of [
       ["power","Power levels"],["gadgets","Gadgets"],["starPowers","Star powers"],
       ["buffies","Buffies"],["gears","Gears"],["hypercharges","Hypercharges"]]){
-      metrics.push([label+" · coins",resultA.categories[category].coins,resultB.categories[category].coins,fmt]);
+      metrics.push([label+" · coins",resultA.categories[category].coins,resultB.categories[category].coins,fmt,"coins"]);
       if(resultA.categories[category].points||resultB.categories[category].points){
-        metrics.push([label+" · points",resultA.categories[category].points,resultB.categories[category].points,fmt]);
+        metrics.push([label+" · points",resultA.categories[category].points,resultB.categories[category].points,fmt,"power points"]);
       }
     }
-    metrics.forEach(([name,x,y,format])=>appendRow(name,x,y,format));
+    metrics.forEach(([name,x,y,format,unit,higherBetter])=>appendRow(name,x,y,format,unit,higherBetter));
     const warnings=[];
     [resultA,resultB].forEach((r,i)=>{
       const player=i===0?a:b;
@@ -119,7 +150,7 @@
     });
     $("compareCaveats").textContent="These are standard resource-equivalent values (not actual purchase history). "+
       (warnings.length?"Incomplete API data: "+warnings.join("; ")+". ":"")+
-      "Difference means Profile A minus Profile B. A negative number is not necessarily worse, particularly for remaining resources.";
+      "The last column names the profile with the larger value and how much larger it is. For remaining resources, more means additional upgrades are needed. Completion differences are in percentage points.";
   }
   async function compare() {
     const aTag=$("compareProfileA").value,bTag=$("compareProfileB").value;
@@ -139,6 +170,13 @@
       ]);
       if(mySeq!==sequence)return;
       const ra=calc.calculate(a,roster,scope),rb=calc.calculate(b,roster,scope);
+      // Comparing fetched accounts also captures updated progression.
+      try {
+        history.save(localStorage,a.tag,scope,ra);
+        history.save(localStorage,b.tag,scope,rb);
+      } catch(error) {
+        $("compareStatus").textContent="Could not save progress history: "+error.message;
+      }
       renderComparison(a,b,ra,rb,scope);
       $("compareStatus").textContent="Comparison loaded. Select different profiles and compare again to refresh.";
     }catch(error){
@@ -150,6 +188,7 @@
     }
   }
   $("compareChartMetric").addEventListener("change",drawComparison);
+  ["compareTrendCategory","compareTrendResource"].forEach(id=>$(id).addEventListener("change",drawTrend));
   $("compareProfileA").addEventListener("change",updateButton);
   $("compareProfileB").addEventListener("change",updateButton);
   $("compareScope").addEventListener("change",()=>{$("compareResults").hidden=true;previousComparison=null;});
