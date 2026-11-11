@@ -122,8 +122,11 @@
       ["buffies","Buffies"],["gears","Gears"],["hypercharges","Hypercharges"]
     ];
     if(metric==="completion"){
-      return [["Coins completed",a.progress.coins?.min??null,b.progress.coins?.min??null],
-        ["Power points completed",a.progress.points?.min??null,b.progress.points?.min??null]];
+      return [["Power levels","power"],["Gadgets","gadgets"],["Star powers","starPowers"],
+        ["Buffies","buffies"],["Gears","gears"],["Hypercharges","hypercharges"],
+        ["Total (core average)","total"]].map(([label,key])=>[
+          label,a.completionByCategory?.[key]?.min??null,b.completionByCategory?.[key]?.min??null
+        ]);
     }
     if(metric!=="coins"&&metric!=="points")throw Error("Invalid resource metric");
     const rows=sections.map(([key,label])=>[label,a.categories[key][metric],b.categories[key][metric]])
