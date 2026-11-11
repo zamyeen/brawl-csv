@@ -120,12 +120,25 @@
   }
   function importJSON(storage, text) {
     const payload = JSON.parse(text);
-    if (!payload || payload.format !== FORMAT || payload.version !== 1 ||
-        !payload.history || typeof payload.history !== "object" || Array.isArray(payload.history)) {
-      throw new Error("Choose a Brawl CSV resource-history JSON backup.");
+    const wrapped = payload && payload.format === FORMAT && payload.version === 1 &&
+      payload.history && typeof payload.history === "object" && !Array.isArray(payload.history);
+    const rawLegacy = payload && typeof payload === "object" && !Array.isArray(payload) &&
+      !("format" in payload) && !("history" in payload);
+    if (!wrapped && !rawLegacy) {
+      throw new Error("Use an exported Brawl CSV history backup or a raw legacy history JSON object (not a player-account JSON export).");
+    }
+    const source = wrapped ? payload.history : payload;
+    const keys = Object.keys(source);
+    if (!keys.length || keys.some(key => !KEY_PATTERN.test(key) || !Array.isArray(source[key]))) {
+      throw new Error("History must contain #PLAYERTAG:owned or #PLAYERTAG:all snapshot arrays.");
+    }
+    const invalidCount = keys.reduce((n,key) =>
+      n + source[key].filter(item => !normalizedSnapshot(item)).length, 0);
+    if (invalidCount) {
+      throw new Error(invalidCount + " invalid snapshot(s): each needs an ISO timestamp and nonnegative integer coins and points.");
     }
     const original = read(storage);
-    const incoming = sanitize(payload.history);
+    const incoming = sanitize(source);
     let imported = 0;
     Object.keys(incoming).forEach(key => {
       const existing = original[key] || [];
