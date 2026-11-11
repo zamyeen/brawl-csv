@@ -122,3 +122,26 @@ After loading an account, the Resource Value panel now has:
 Snapshot history is browser-local \`localStorage\`, **not** cloud storage or synced across devices. Export a backup if you want to preserve it across browsers or after clearing site data. No actual resource cost history or unspent account balances are available from the player API. Live comparison requires the Brawl Stars API; full-roster comparison additionally requires \`/api/brawlers\`.
 
 Run the additional tests with \`node --test tests/resource-history.test.js\` or both test files with \`node --test tests/*.test.js\`.
+
+## Dual-resource progress graph and comparison graph
+
+- The Progress history selector now supports **Both (two axes)**, Coins only, or Power points only. When both are enabled, gold coins use the left axis and blue power points use the right axis, each with its own independently scaled units. Hover points for exact timestamps and values.
+- The saved-profile comparison includes a grouped bar chart. Choose coin value, power-point value, or completion percentage. Bars compare category values and overall totals; the numeric table remains below. Completion percent uses the confirmed minimum when Buffie ownership is unknown.
+
+### How to import older resource progress
+
+1. **Recommended:** On your old browser, choose **Export history**, then transfer the resulting `brawl-resource-history.json` file to your new browser. Select it using **Import history**. Existing entries are merged without duplicates.
+2. **Raw legacy browser storage:** If you saved the old `localStorage` entry named `brawl-csv:resource-history:v1`, copy its JSON value into a `.json` file and select that file. If you are still using the original browser, this history is detected automatically.
+3. **Required legacy structure:** A JSON object whose keys look like `#PLAYERTAG:owned` or `#PLAYERTAG:all`. Every value is an array of snapshot objects containing `timestamp` (ISO-8601 UTC, such as `2026-11-01T12:00:00.000Z`), and nonnegative integer `coins` and `points`. Other snapshot fields are optional.
+
+Example valid raw legacy JSON:
+
+    {
+      "#2P0Y8Q9:owned": [
+        {"timestamp":"2026-11-01T12:00:00.000Z","coins":50000,"points":20000}
+      ]
+    }
+
+4. **Not importable:** The normal **Download JSON** button exports a current player API response, not history. It cannot recreate past snapshots. If old snapshots were never saved, past resource values cannot be recovered from the present account response.
+
+The import also accepts a versioned backup with `format: brawl-csv-resource-history`, `version: 1`, and a `history` object. JSON imports are limited to 2 MB. Malformed profile keys and invalid snapshot records are rejected with actionable errors; valid backups can be imported repeatedly without duplicating history.
