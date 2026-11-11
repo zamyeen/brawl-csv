@@ -164,6 +164,46 @@
     $("starProgressText").textContent = fmt(starComplete) + " / " + fmt(total) + " owned brawlers with 2 star powers";
     setMetric("starBar", starComplete, total);
     setMetric("starRemaining", total - starComplete);
+    // The API only supplies buffie availability for some brawlers.
+    // Count explicit true/false values, never treat a missing field as an unowned Buffie.
+    const kinds = ["hyperCharge", "gadget", "starPower"];
+    const missingByKind = {hyperCharge: 0, gadget: 0, starPower: 0};
+    let buffieOwned = 0, buffieKnown = 0, unknownBuffies = 0;
+    let firstGadgets = 0, firstStarPowers = 0;
+    const noGadgets = [], noStarPowers = [];
+    brawlers.forEach((brawler) => {
+      const gadgets = Array.isArray(brawler.gadgets) ? brawler.gadgets : [];
+      const starPowers = Array.isArray(brawler.starPowers) ? brawler.starPowers : [];
+      if (gadgets.length > 0) firstGadgets++;
+      else noGadgets.push(String(brawler.name || "Unknown"));
+      if (starPowers.length > 0) firstStarPowers++;
+      else noStarPowers.push(String(brawler.name || "Unknown"));
+      kinds.forEach((kind) => {
+        const value = brawler.buffies?.[kind];
+        if (value === true) { buffieOwned++; buffieKnown++; }
+        else if (value === false) { missingByKind[kind]++; buffieKnown++; }
+        else unknownBuffies++;
+      });
+    });
+    const buffieMissing = Object.values(missingByKind).reduce((a, b) => a + b, 0);
+    setMetric("buffieRemaining", buffieKnown ? buffieMissing : "—");
+    renderProgress("buffieBar", buffieOwned, buffieKnown);
+    $("buffieProgressText").textContent = buffieKnown
+      ? fmt(buffieOwned) + " / " + fmt(buffieKnown) + " API-reported Buffies collected"
+      : "No Buffie ownership data reported";
+    $("buffieBreakdown").textContent = buffieKnown
+      ? "Missing: " + fmt(missingByKind.hyperCharge) + " Hypercharge, " +
+        fmt(missingByKind.gadget) + " Gadget, " + fmt(missingByKind.starPower) +
+        " Star Power" + (unknownBuffies ? ". " + fmt(unknownBuffies) + " unreported slots excluded." : ".")
+      : "Unknown / ineligible slots are not counted as missing.";
+    setMetric("gadgetFirstRemaining", total - firstGadgets);
+    renderProgress("gadgetFirstBar", firstGadgets, total);
+    $("gadgetFirstProgressText").textContent = fmt(firstGadgets) + " / " + fmt(total) + " owned brawlers with a gadget";
+    $("gadgetFirstNames").textContent = noGadgets.length ? "Missing: " + noGadgets.join(", ") : "All owned brawlers have a gadget.";
+    setMetric("starFirstRemaining", total - firstStarPowers);
+    renderProgress("starFirstBar", firstStarPowers, total);
+    $("starFirstProgressText").textContent = fmt(firstStarPowers) + " / " + fmt(total) + " owned brawlers with a star power";
+    $("starFirstNames").textContent = noStarPowers.length ? "Missing: " + noStarPowers.join(", ") : "All owned brawlers have a star power.";
     $("milestonePlayer").textContent = currentPlayer.name || tag;
   }
 
