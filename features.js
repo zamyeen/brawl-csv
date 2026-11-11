@@ -244,7 +244,7 @@
     $("milestonePlayer").textContent = currentPlayer.name || tag;
   }
 
-  function saveGoal() {  function saveGoal() {
+  function saveGoal() {
     if (!currentPlayer) return;
     const tag = normalizeTag(currentPlayer.tag);
     goals[tag] = {
