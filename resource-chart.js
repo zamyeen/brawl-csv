@@ -157,10 +157,13 @@
       append(svg,"text",{x:barX-14,y:base+23,"text-anchor":"end",fill:"#dbe4f7","font-size":13},label);
       append(svg,"line",{x1:barX,x2:maxX,y1:base+49,y2:base+49,stroke:"#34435f","stroke-width":1});
       [av,bv].forEach((n,j)=>{
-        if(n===null || n===undefined)return;
         const y=base+6+j*21;
-        const barWidth=Math.max(0,n/max*usable);
         const color=j===0?COLORS.a:COLORS.b;
+        if(n===null || n===undefined){
+          append(svg,"text",{x:barX+5,y:y+12,fill:"#b8c3dc","font-size":12},"N/A — completion target unavailable");
+          return;
+        }
+        const barWidth=Math.max(0,n/max*usable);
         const rect=append(svg,"rect",{x:barX,y,width:barWidth,height:16,rx:3,fill:color});
         rect.append(node(svg.ownerDocument,"title",{},(j===0?names[0]:names[1])+": "+short(n)+" — "+label));
         append(svg,"text",{x:Math.min(865,barX+barWidth+7),y:y+12,fill:color,"font-size":12},short(n));
