@@ -1,0 +1,39 @@
+/* Trophy progression panel, charts, stage comparisons and change highlighting. */
+.trophy-card { padding:20px; margin-top:18px; }
+.trophy-card h2 { margin:0; font-size:21px; }
+.trophy-card h3 { margin:0; font-size:15px; }
+.trophy-card .resource-heading { align-items:flex-start; }
+.trophy-actions { display:flex; align-items:center; justify-content:flex-end; gap:8px; flex-wrap:wrap; }
+.trophy-actions button { height:40px; padding:0 12px; font-size:12px; }
+.trophy-counters,.trophy-stage-summary { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin:18px 0; }
+.trophy-stage-summary { grid-template-columns:repeat(4,minmax(0,1fr)); }
+.trophy-stat { min-width:0; display:flex; flex-direction:column; gap:4px; padding:14px; border:1px solid var(--border); border-radius:12px; background:var(--panel-2); }
+.trophy-stat strong { font-size:24px; font-variant-numeric:tabular-nums; }
+#trophyStageNote { max-width:550px; height:42px; }
+#trophyStatus { min-height:18px; }
+.trophy-trend-head { display:flex; justify-content:space-between; align-items:end; gap:14px; flex-wrap:wrap; margin:18px 0 10px; }
+.trophy-trend-head select,.trophy-stage-selectors select { display:block; width:100%; max-width:100%; min-width:0; height:42px; border:1px solid var(--border); border-radius:10px; background:#0d1427; color:var(--text); padding:0 10px; font:inherit; }
+.trophy-trend-head .resource-scope { min-width:min(300px,100%); }
+.trophy-stage-selectors { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto; align-items:end; gap:12px; margin:12px 0; }
+.trophy-stage-selectors button { height:42px; }
+.trophy-delta-chart { margin:10px 0 18px; }
+.trophy-table-heading { display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap; margin:20px 0 10px; }
+.trophy-checkbox { display:flex; gap:8px; align-items:center; cursor:pointer; }
+.trophy-checkbox input { width:17px; height:17px; accent-color:var(--accent-2); }
+.trophy-change-gain { background:rgba(85,208,136,.07); }
+.trophy-change-loss { background:rgba(255,123,140,.07); }
+.trophy-change-new,.trophy-change-missing { background:rgba(107,220,255,.05); }
+.trophy-delta-gain { color:#8ef0ad; font-weight:900; }
+.trophy-delta-loss { color:#ff7b8c; font-weight:900; }
+.trophy-delta-new,.trophy-delta-missing { color:var(--accent-2); }
+#trophyStageComparison[hidden] { display:none; }
+@media (max-width:850px) {
+ .trophy-stage-summary { grid-template-columns:repeat(2,minmax(0,1fr)); }
+ .trophy-stage-selectors { grid-template-columns:1fr; }
+ .trophy-stage-selectors button { width:100%; }
+}
+@media (max-width:580px) {
+ .trophy-counters,.trophy-stage-summary { grid-template-columns:1fr; }
+ .trophy-actions { justify-content:flex-start; }
+ .trophy-trend-head .resource-scope { width:100%; }
+}

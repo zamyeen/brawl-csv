@@ -99,6 +99,7 @@
   </style>
   <link rel="stylesheet" href="/features.css" />
   <link rel="stylesheet" href="/resource.css" />
+  <link rel="stylesheet" href="/trophy.css" />
 </head>
 <body>
   <main>
@@ -139,6 +140,79 @@
         <div class="metric"><div class="k">3v3 wins</div><div id="wins3v3" class="v">—</div></div>
       </div>
 
+
+
+      <section class="card trophy-card" aria-labelledby="trophyHistoryTitle">
+        <div class="resource-heading">
+          <div>
+            <h2 id="trophyHistoryTitle">Trophy tracker</h2>
+            <p class="feature-muted">Track total trophies and each brawler's trophies between saved account stages.</p>
+          </div>
+          <div class="trophy-actions">
+            <button id="trophySaveStage" class="primary" type="button" disabled>Save trophy stage</button>
+            <button id="trophyExport" class="secondary" type="button">Export trophy history</button>
+            <button id="trophyImport" class="secondary" type="button">Import trophy history</button>
+            <input id="trophyImportFile" type="file" accept=".json,application/json" hidden aria-label="Import trophy history JSON" />
+          </div>
+        </div>
+        <div class="trophy-counters">
+          <div class="trophy-stat"><span class="feature-muted">Current trophies</span><strong id="trophyCurrent">—</strong></div>
+          <div class="trophy-stat"><span class="feature-muted">Since previous stage</span><strong id="trophyLatestDelta">—</strong></div>
+          <div class="trophy-stat"><span class="feature-muted">Saved stages</span><strong id="trophyStageCount">0</strong></div>
+        </div>
+        <label for="trophyStageNote">OPTIONAL STAGE NOTE</label>
+        <input id="trophyStageNote" type="text" maxlength="100" placeholder="e.g. After ranked push" />
+        <p id="trophyStatus" class="feature-muted" role="status" aria-live="polite"></p>
+        <details class="resource-import-help">
+          <summary>How do trophy stages get saved and imported?</summary>
+          <div class="resource-import-instructions feature-muted">
+            <p>Loading a player automatically saves a stage when its account or brawler trophy counts have changed. Use <strong>Save trophy stage</strong> to record a named checkpoint even when trophies are unchanged. Each stage stores the account total, date, and individual brawler trophy counts.</p>
+            <p>To transfer trophy history to another browser, use <strong>Export trophy history</strong> and import that downloaded JSON file. It is separate from the <strong>Resource Value</strong> backup and the regular player JSON export. The importer only accepts trophy-history backups generated here (up to 5 MB); older history cannot be reconstructed if it was never saved.</p>
+          </div>
+        </details>
+        <div class="trophy-trend-head">
+          <h3>Total and individual brawler trophies over time</h3>
+          <div class="resource-scope">
+            <label for="trophyTrendBrawler">SHOW TROPHIES FOR</label>
+            <select id="trophyTrendBrawler"><option value="total">Account total</option></select>
+          </div>
+        </div>
+        <svg id="trophyTrendChart" class="resource-history-chart" viewBox="0 0 760 265" aria-label="Trophies over time"></svg>
+        <h3 class="resource-section-heading">Compare two saved stages</h3>
+        <p class="feature-muted">Choose two checkpoints to see which brawlers gained or lost trophies. The later stage is compared with the earlier stage.</p>
+        <div class="trophy-stage-selectors">
+          <div>
+            <label for="trophyEarlierStage">EARLIER STAGE</label>
+            <select id="trophyEarlierStage" aria-label="Earlier saved trophy stage"></select>
+          </div>
+          <div>
+            <label for="trophyLaterStage">LATER STAGE</label>
+            <select id="trophyLaterStage" aria-label="Later saved trophy stage"></select>
+          </div>
+          <button id="trophyCompareStages" class="primary" type="button" disabled>Compare stages</button>
+        </div>
+        <div id="trophyStageComparison" hidden>
+          <div class="trophy-stage-summary">
+            <div class="trophy-stat"><span class="feature-muted">Account trophy change</span><strong id="trophyAccountDifference">—</strong></div>
+            <div class="trophy-stat"><span class="feature-muted">Gains on shared brawlers</span><strong id="trophyComparableGains">—</strong></div>
+            <div class="trophy-stat"><span class="feature-muted">Losses on shared brawlers</span><strong id="trophyComparableLosses">—</strong></div>
+            <div class="trophy-stat"><span class="feature-muted">Brawlers with changed trophies</span><strong id="trophyChangedBrawlers">—</strong></div>
+          </div>
+          <p id="trophyStageExplanation" class="feature-muted"></p>
+          <h3 class="resource-section-heading">Biggest brawler trophy changes</h3>
+          <svg id="trophyDeltaChart" class="resource-history-chart trophy-delta-chart" viewBox="0 0 800 390" aria-label="Brawlers with the largest trophy changes"></svg>
+          <div class="trophy-table-heading">
+            <h3>Brawler-by-brawler differences</h3>
+            <label class="trophy-checkbox"><input id="trophyShowUnchanged" type="checkbox" /> Show unchanged brawlers</label>
+          </div>
+          <div class="resource-table-wrap">
+            <table class="resource-table" aria-label="Trophy comparison of each brawler">
+              <thead><tr><th>Brawler</th><th>Earlier</th><th>Later</th><th>Change</th><th>Change type</th></tr></thead>
+              <tbody id="trophyDifferenceRows"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
 
       <section class="card resource-card" aria-labelledby="resourceTitle">
         <div class="resource-heading">
@@ -602,6 +676,9 @@
   $("csv").addEventListener("click", downloadCsv);
   $("json").addEventListener("click", downloadJson);
 </script>
+<script src="/trophy-history.js" defer></script>
+<script src="/trophy-charts.js" defer></script>
+<script src="/trophy-ui.js" defer></script>
 <script src="/resource-value.js" defer></script>
 <script src="/resource-history.js" defer></script>
 <script src="/resource-chart.js" defer></script>
