@@ -171,3 +171,18 @@ Completion history for older snapshots is unavailable until a snapshot created b
 ### Comparison table difference labels
 
 The final comparison column now identifies the account holding a larger numerical value (for example, `Alpha +12,000 coins` or `Beta +4.5 pp`); `Equal` is shown for ties. For the **remaining** resource rows, the account name means it has *more resources still required*, not that it is ahead in completion. Unavailable completion rows say `N/A` instead of treating missing information as 0.
+
+## Trophy tracker and saved account-stage differences
+
+The **Trophy tracker** section is shown whenever a player account is loaded. It saves the account's total trophies and a complete per-brawler trophy breakdown as dated checkpoints in browser localStorage.
+
+- **Automatic stages:** Loading an account saves a new trophy stage only when total account trophies, a brawler's trophy count, or the brawler roster has changed since the last saved stage.
+- **Manual stages:** Click **Save trophy stage**, optionally adding a note. Manual saves can record a checkpoint even when trophies have not changed.
+- **History chart:** Switch between total account trophies and any brawler in the saved stages. Hover a point to see the exact date, trophies and stage note.
+- **Compare two saved stages:** Pick any two timestamps using Earlier stage and Later stage, then click Compare stages. The comparison shows the account's total change, the sum of gains and losses among brawlers present in both stages, largest brawler changes on a divergent chart, and a color-highlighted row for every changed brawler. Enable Show unchanged brawlers to see the full roster.
+- **Newly reported and missing brawlers:** If a brawler appears in only one stage, its other trophy value is not assumed to be zero. Such rows are shown separately and the difference between account total and shared-brawler deltas is disclosed as an unattributed amount.
+- **History backup:** Export trophy history as `brawl-trophy-history.json`, then import it into another browser. The trophy import accepts only these versioned backups (up to 5 MB) and is separate from Resource Value history JSON and the standard player JSON export.
+
+Saved trophy stages are stored under `brawl-csv:trophy-history:v1` (up to 500 per player). They are **local to the browser**, not synchronized between devices, and can only show changes between snapshots captured after installing the feature. The app cannot reconstruct past trophies from a current player API response. No background polling occurs. Brawler identity uses stable API IDs whenever present, with normalized names as fallback.
+
+Run the regression tests with `node --test tests/trophy-history.test.js` (or `node --test tests/*.test.js`).
