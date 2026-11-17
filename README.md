@@ -205,3 +205,18 @@ The browser-local trophy and resource history still work as before. A new **Dail
 Each uncompressed player API snapshot is expected to be roughly **10–50 KB**, depending on account size and item details; database/index/backup overhead adds to this. One account requires approximately 3.7–18.3 MB/year; ten accounts approximately 36.5–182.5 MB/year, before overhead. A 5-year history of 10 accounts is approximately 182.5–912.5 MB. PostgreSQL JSONB storage and compression can change actual disk usage. Query `pg_total_relation_size('public.brawl_daily_snapshots')` for a real measurement after data accumulates.
 
 The daily history API returns up to the latest 366 days for a tag. The database retains older records, and you may add retention/archival rules later. No database costs or quota are guaranteed; check the actual provider plan.
+
+## Daily cloud resource progression graphs
+
+The existing **Account Resource Value → Progress history** chart now has a **History source** selector. The default is **Automatic daily cloud**, which uses the same daily PostgreSQL snapshots collected by `/api/daily-snapshot`, including days the website is closed. **Browser checkpoints** retains the existing manual/automatic `localStorage` history and import/export workflow. If no cloud records exist (or the history API fails), the chart falls back to browser checkpoints and explains why.
+
+Both sources support the existing **Category** selector (Total, Power, Gadgets, Star Powers, Buffies, Gears, Hypercharges) and **Resource/Completion** selector (Coins, Power points, Both, or Completion %). The server recomputes historical resource equivalents from archived player JSON using the shared `resource-value.js` valuation engine; no new database columns, schema migration, environment variables, or cron jobs are needed.
+
+**Important limitations:**
+- Daily cloud resource charts are supported for the **Owned brawlers** scope only. Daily snapshots do not preserve historical whole-roster catalogs, so **Entire roster** falls back to browser checkpoints; do not compare these scopes as equivalent.
+- Cloud resource values are recalculated using **current upgrade prices and current Buffie eligibility**, not historically effective game rules. They represent comparable current-standard-equivalent progression, not coins actually earned or spent.
+- Gear and Hypercharge completion remain unavailable without a trustworthy denominator; Buffie data missing from the player API remains unknown, not unowned.
+- Only successful daily cron writes create cloud points. No previous missed days can be recovered from the current API profile.
+- The current history endpoint returns up to 366 days; older database records are retained but won't appear in the graphs until pagination/range selection is added.
+
+The shared history-data conversion is in `cloud-resource-history.js` and is tested with `node --test tests/cloud-resource-history.test.js`.
