@@ -186,3 +186,22 @@ The **Trophy tracker** section is shown whenever a player account is loaded. It 
 Saved trophy stages are stored under `brawl-csv:trophy-history:v1` (up to 500 per player). They are **local to the browser**, not synchronized between devices, and can only show changes between snapshots captured after installing the feature. The app cannot reconstruct past trophies from a current player API response. No background polling occurs. Brawler identity uses stable API IDs whenever present, with normalized names as fallback.
 
 Run the regression tests with `node --test tests/trophy-history.test.js` (or `node --test tests/*.test.js`).
+
+## Automatic daily snapshots (optional cloud setup)
+
+The browser-local trophy and resource history still work as before. A new **Daily cloud trophy history** chart can read centrally stored daily snapshots, including individual brawler trophy counts. To collect updates while nobody has the site open, configure a separate database and a scheduled serverless function.
+
+1. In Vercel Marketplace, provision a Neon Postgres database and connect it to this project. Set its connection string as `DATABASE_URL` in Vercel project environment variables (production and preview if testing there).
+2. In your database SQL editor, execute `db/daily_snapshots.sql` to create the table. Deploying code alone does *not* create the table.
+3. In Vercel project environment variables, set `TRACKED_PLAYER_TAGS` to a comma-separated list of **public** Brawl Stars player tags, for example `#2P0Y8Q9,#ABC123` (use actual valid tags; invalid ones are ignored). This is a server-maintained allowlist, currently capped at 25 tags per cron invocation. **Browser-local saved profiles are not automatically enrolled**, because localStorage is not available to Vercel cron functions.
+4. Add a random, long `CRON_SECRET` environment variable. Vercel includes `Authorization: Bearer <CRON_SECRET>` in scheduled requests. Do not share this secret in client code. The existing `BRAWL_API_KEY` must also be present.
+5. Redeploy. `vercel.json` runs `GET /api/daily-snapshot` at `08:00 UTC` once daily. The cron stores **one full player API JSON response per tag per UTC date** (new runs on the same date update the same row). A failed account can be retried independently on the next run. Check Vercel Functions logs for per-tag results.
+6. Load a tracked account on the website and scroll to **Daily cloud trophy history**. The dropdown supports total account trophies and individual brawlers. The chart becomes useful after at least two successful collection days.
+
+**Important:** This feature is *not active until the database and environment variables are configured*; deploying or merging the PR alone will not start storing data. The history endpoint returns public player history and is intended only for public Brawl Stars profile information. If you do not want a tracked profile's history publicly queryable, restrict access before enabling it. Unlike localStorage, this central history remains in the database across devices. Daily summaries and full brawler states are preserved; the graph currently renders trophies, not all resource progression categories.
+
+### Storage estimate
+
+Each uncompressed player API snapshot is expected to be roughly **10–50 KB**, depending on account size and item details; database/index/backup overhead adds to this. One account requires approximately 3.7–18.3 MB/year; ten accounts approximately 36.5–182.5 MB/year, before overhead. A 5-year history of 10 accounts is approximately 182.5–912.5 MB. PostgreSQL JSONB storage and compression can change actual disk usage. Query `pg_total_relation_size('public.brawl_daily_snapshots')` for a real measurement after data accumulates.
+
+The daily history API returns up to the latest 366 days for a tag. The database retains older records, and you may add retention/archival rules later. No database costs or quota are guaranteed; check the actual provider plan.
