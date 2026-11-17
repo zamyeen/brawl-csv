@@ -142,6 +142,21 @@
 
 
 
+      <section class="card trophy-card" aria-labelledby="dailyHistoryTitle">
+        <div class="resource-heading">
+          <div>
+            <h2 id="dailyHistoryTitle">Daily cloud trophy history</h2>
+            <p class="feature-muted">Automatically captured once a day for server-configured tracked accounts, even when this website is closed.</p>
+          </div>
+          <div class="resource-scope">
+            <label for="dailyHistoryBrawler">SHOW TROPHIES FOR</label>
+            <select id="dailyHistoryBrawler"><option value="total">Account total</option></select>
+          </div>
+        </div>
+        <p id="dailyHistoryStatus" class="feature-muted" role="status">Load an account to view its daily history.</p>
+        <svg id="dailyHistoryChart" class="resource-history-chart" viewBox="0 0 760 265" role="img" aria-label="Daily account or brawler trophies over time"></svg>
+      </section>
+
       <section class="card trophy-card" aria-labelledby="trophyHistoryTitle">
         <div class="resource-heading">
           <div>
@@ -686,5 +701,6 @@
 <script src="/resource-ui.js" defer></script>
 <script src="/compare-ui.js" defer></script>
 <script src="/features.js" defer></script>
+<script src="/daily-history-ui.js" defer></script>
 </body>
 </html>

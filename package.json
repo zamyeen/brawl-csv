@@ -1,0 +1,12 @@
+{
+  "private": true,
+  "name": "brawl-csv",
+  "version": "1.0.0",
+  "description": "Brawl Stars profile tracker",
+  "scripts": {
+    "test": "node --test tests/*.test.js"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.0.0"
+  }
+}
