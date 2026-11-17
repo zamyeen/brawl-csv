@@ -316,6 +316,11 @@
             <div id="resourceGrowth" class="feature-muted"></div>
             <div class="resource-scope">
               <div class="resource-graph-filters">
+                <div><label for="resourceHistorySource">HISTORY SOURCE</label>
+                  <select id="resourceHistorySource">
+                    <option value="cloud" selected>Automatic daily cloud</option>
+                    <option value="local">Browser checkpoints</option>
+                  </select></div>
                 <div><label for="resourceChartCategory">CATEGORY</label>
                   <select id="resourceChartCategory"><option value="total">Total resource value</option>
                 <option value="power">Power levels</option>
@@ -698,6 +703,7 @@
 <script src="/resource-history.js" defer></script>
 <script src="/resource-chart.js" defer></script>
 <script src="/resource-trends.js" defer></script>
+<script src="/cloud-resource-history.js" defer></script>
 <script src="/resource-ui.js" defer></script>
 <script src="/compare-ui.js" defer></script>
 <script src="/features.js" defer></script>
