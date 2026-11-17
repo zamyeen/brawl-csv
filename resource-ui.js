@@ -13,6 +13,9 @@
   let lastRequestedScope = null;
   let lastRecordedTag = null;
   const storage = window.localStorage;
+  let cloudSeries = [];
+  let cloudError = "";
+
 
   function saveSnapshot(result, manual = false) {
     if (!player || !player.tag) return {status:"unavailable"};
@@ -52,17 +55,28 @@
       : "Save another checkpoint later to track value growth.";
     const category=$("resourceChartCategory").value;
     const resource=$("resourceChartMetric").value;
+    const wantsCloud=$("resourceHistorySource").value==="cloud";
+    const canShowCloud=wantsCloud && result.mode==="owned" && cloudSeries.length>0;
+    const displaySeries=canShowCloud ? cloudSeries : series;
     window.BrawlTrendChart.draw($("resourceHistoryChart"),[
-      {name:player.name||player.tag,history:series}
+      {name:player.name||player.tag,history:displaySeries}
     ],{category,resource});
     const requiresCompletion=resource==="completion";
-    $("resourceChartHint").textContent=requiresCompletion
+    const scopeNotice=wantsCloud && result.mode!=="owned"
+      ? "Daily cloud history records owned brawlers only; showing browser checkpoints for the entire-roster scope. "
+      : wantsCloud && !cloudSeries.length
+        ? (cloudError ? "Daily history unavailable ("+cloudError+"); showing browser checkpoints. "
+          : "No daily cloud snapshots yet; showing browser checkpoints. ")
+        : canShowCloud ? "Showing "+cloudSeries.length+" daily cloud snapshots. " : "Showing browser checkpoints. ";
+    const metricNotice=requiresCompletion
       ? category==="gears"||category==="hypercharges"
         ? "Completion unavailable: the API does not reliably provide the full number of obtainable gears or Hypercharges."
         : category==="total"
           ? "Total completion is the equal-weight average of Power, Gadgets, Star Powers and Buffies (where defined). Buffie uncertainty is shown as a confirmed minimum."
           : "Completion uses this category's released upgrades. Unknown Buffies are excluded from the confirmed minimum."
-      : "Coin and power-point values use their own scales when both are shown. Older snapshots without category detail cannot display those category histories.";
+      : "Coin and power-point values use their own scales when both are shown. Older browser snapshots without category detail cannot display those category histories.";
+    $("resourceChartHint").textContent=scopeNotice+metricNotice+
+      (canShowCloud ? " Historical values use today's valuation rules, not historical prices." : "");
   }
   function signed(value) {return (value>0?"+":"")+fmt(value);}
 
@@ -201,7 +215,7 @@
       $("resourceHistoryStatus").textContent="Save failed: "+error.message;
     }
   });
-  ["resourceChartCategory","resourceChartMetric"].forEach(id=>{
+  ["resourceChartCategory","resourceChartMetric","resourceHistorySource"].forEach(id=>{
     $(id).addEventListener("change",()=>{
       if(player && lastResult) displayHistory(lastResult);
     });
@@ -232,6 +246,12 @@
       $("resourceHistoryStatus").textContent="Import failed: "+error.message;
     } finally {$("resourceImportFile").value="";}
   });
+  document.addEventListener("brawl:daily-history-loaded", event => {
+    if(!player || event.detail?.tag !== player.tag) return;
+    cloudSeries=window.BrawlCloudResourceHistory.toSeries(event.detail.snapshots);
+    cloudError=event.detail.error || "";
+    if(lastResult) displayHistory(lastResult);
+  });
   $("resourceSaveSnapshot").disabled=true;
   $("resourceScope").addEventListener("change", () => {
     if (player) {
@@ -242,6 +262,8 @@
   });
   document.addEventListener("brawl:player-loaded", event => {
     player = event.detail;
+    cloudSeries = [];
+    cloudError = "";
     $("resourceSaveSnapshot").disabled=false;
     $("resourceHistoryStatus").textContent="";
     render(true);
