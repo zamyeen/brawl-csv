@@ -6,6 +6,7 @@
   const select = $("dailyHistoryBrawler");
   const chart = $("dailyHistoryChart");
   let snapshots = [];
+  let requestId = 0;
   function render() {
     const key = select.value;
     const points = snapshots.map(s => {
@@ -52,6 +53,7 @@
   }
   async function load(event) {
     const player=event.detail;
+    const attempt = ++requestId;
     select.replaceChildren(new Option("Account total","total"));
     snapshots=[];
     chart.replaceChildren();
@@ -59,6 +61,7 @@
     try {
       const response=await fetch("/api/daily-history?tag="+encodeURIComponent(player.tag));
       const data=await response.json();
+      if(attempt !== requestId) return;
       if(!response.ok)throw Error(data.message||"History unavailable");
       snapshots=Array.isArray(data.snapshots)?data.snapshots:[];
       const brawlers=new Map();
@@ -68,8 +71,15 @@
       [...brawlers.entries()].sort((a,b)=>a[1].localeCompare(b[1]))
         .forEach(([id,name])=>select.add(new Option(name,id)));
       render();
+      document.dispatchEvent(new CustomEvent("brawl:daily-history-loaded", {
+        detail:{tag:player.tag,snapshots}
+      }));
     }catch(err){
+      if(attempt !== requestId) return;
       label.textContent=err.message||"Could not load daily history.";
+      document.dispatchEvent(new CustomEvent("brawl:daily-history-loaded", {
+        detail:{tag:player.tag,snapshots:[],error:label.textContent}
+      }));
     }
   }
   document.addEventListener("brawl:player-loaded",load);
